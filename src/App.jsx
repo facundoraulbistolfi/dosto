@@ -7,7 +7,7 @@ import StatsBar from "./components/StatsBar.jsx";
 const STORAGE_KEY = "dostoevsky-read";
 
 export default function App() {
-  const [readBooks, setReadBooks] = useState(new Set());
+  const [bookStates, setBookStates] = useState({});
   const [activeThemes, setActiveThemes] = useState(new Set());
   const [selectedBook, setSelectedBook] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -17,7 +17,18 @@ export default function App() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setReadBooks(new Set(JSON.parse(raw)));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          // Migration: old format was array of IDs → all "terminado"
+          const migrated = {};
+          parsed.forEach((id) => { migrated[id] = { status: "terminado" }; });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+          setBookStates(migrated);
+        } else {
+          setBookStates(parsed);
+        }
+      }
     } catch {
       // first visit
     }
@@ -35,20 +46,31 @@ export default function App() {
     };
   }, [selectedBook]);
 
-  const saveRead = useCallback((newSet) => {
+  const saveStates = useCallback((states) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...newSet]));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
     } catch {
       // storage unavailable
     }
   }, []);
 
-  const toggleRead = (id) => {
-    setReadBooks((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      saveRead(next);
+  const getStatus = (id) => bookStates[id]?.status || "no-leido";
+  const isFinished = (id) => getStatus(id) === "terminado";
+  const isInProgress = (id) => getStatus(id) === "en-progreso";
+  const getChapter = (id) => bookStates[id]?.chapter || null;
+
+  const setBookStatus = (id, status, chapter = null) => {
+    setBookStates((prev) => {
+      const next = { ...prev };
+      if (status === "no-leido") {
+        delete next[id];
+      } else {
+        next[id] = { status };
+        if (status === "en-progreso" && chapter != null) {
+          next[id].chapter = chapter;
+        }
+      }
+      saveStates(next);
       return next;
     });
   };
@@ -74,8 +96,10 @@ export default function App() {
   );
 
   const totalPages = NOVELS.reduce((s, n) => s + n.pages, 0);
-  const readPages = NOVELS.filter((n) => readBooks.has(n.id)).reduce((s, n) => s + n.pages, 0);
-  const readCount = readBooks.size;
+  const readPages = NOVELS.filter((n) => isFinished(n.id)).reduce((s, n) => s + n.pages, 0);
+  const inProgressPages = NOVELS.filter((n) => isInProgress(n.id)).reduce((s, n) => s + n.pages, 0);
+  const finishedCount = NOVELS.filter((n) => isFinished(n.id)).length;
+  const inProgressCount = NOVELS.filter((n) => isInProgress(n.id)).length;
   const remainPages = totalPages - readPages;
 
   if (!loaded) {
@@ -103,21 +127,22 @@ export default function App() {
 
       {/* Stats Panel */}
       <div style={{ padding: "20px 24px", borderBottom: `1px solid ${COLORS.bgCardRead}` }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 16, maxWidth: 600, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 16, maxWidth: 700, margin: "0 auto" }}>
           {[
-            { label: "Novelas leídas", value: `${readCount}/${NOVELS.length}` },
+            { label: "Terminadas", value: `${finishedCount}/${NOVELS.length}` },
+            { label: "En progreso", value: inProgressCount, color: inProgressCount > 0 ? COLORS.inProgress : undefined },
             { label: "Páginas leídas", value: readPages.toLocaleString() },
             { label: "Páginas restantes", value: remainPages.toLocaleString() },
             { label: "Progreso", value: `${totalPages > 0 ? Math.round((readPages / totalPages) * 100) : 0}%` },
-          ].map(({ label, value }) => (
+          ].map(({ label, value, color }) => (
             <div key={label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: COLORS.gold }}>{value}</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: color || COLORS.gold }}>{value}</div>
               <div style={{ fontSize: 11, color: COLORS.textSecondary, letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{label}</div>
             </div>
           ))}
         </div>
-        <div style={{ maxWidth: 600, margin: "14px auto 0" }}>
-          <StatsBar read={readPages} total={totalPages} />
+        <div style={{ maxWidth: 700, margin: "14px auto 0" }}>
+          <StatsBar read={readPages} inProgress={inProgressPages} total={totalPages} />
         </div>
       </div>
 
@@ -201,27 +226,37 @@ export default function App() {
       {/* Books Grid */}
       <div style={{ padding: "24px", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 24, maxWidth: 900, margin: "0 auto" }}>
         {filtered.map((novel) => {
-          const isRead = readBooks.has(novel.id);
+          const status = getStatus(novel.id);
+          const finished = status === "terminado";
+          const inProg = status === "en-progreso";
           return (
             <div
               key={novel.id}
               className="book-card"
-              style={{ cursor: "pointer", transition: "transform 0.2s, opacity 0.2s, box-shadow 0.2s", opacity: isRead ? 1 : 0.75, animation: "fadeIn 0.3s ease" }}
+              style={{ cursor: "pointer", transition: "transform 0.2s, opacity 0.2s, box-shadow 0.2s", opacity: finished ? 1 : inProg ? 0.9 : 0.75, animation: "fadeIn 0.3s ease" }}
               onClick={() => setSelectedBook(novel)}
             >
               <div style={{
                 aspectRatio: "200/280",
                 borderRadius: 4,
                 overflow: "hidden",
-                boxShadow: isRead ? "0 4px 20px rgba(212,168,83,0.15)" : "0 2px 10px rgba(0,0,0,0.3)",
-                border: isRead ? `1px solid ${COLORS.borderRead}` : `1px solid ${COLORS.bgCardRead}`,
+                boxShadow: finished
+                  ? "0 4px 20px rgba(212,168,83,0.15)"
+                  : inProg
+                  ? "0 4px 16px rgba(90,138,106,0.15)"
+                  : "0 2px 10px rgba(0,0,0,0.3)",
+                border: finished
+                  ? `1px solid ${COLORS.borderRead}`
+                  : inProg
+                  ? `1px solid ${COLORS.borderInProgress}`
+                  : `1px solid ${COLORS.bgCardRead}`,
                 position: "relative",
               }}>
-                <CoverArt type={novel.cover} isRead={isRead} title={novel.title} />
+                <CoverArt type={novel.cover} status={status} title={novel.title} />
                 <div style={{ position: "absolute", bottom: 8, right: 8, fontSize: 10, color: COLORS.textSecondary, letterSpacing: 1 }}>
                   {novel.year}
                 </div>
-                {isRead && (
+                {finished && (
                   <div style={{
                     position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: "50%",
                     background: COLORS.gold, display: "flex", alignItems: "center", justifyContent: "center",
@@ -230,8 +265,17 @@ export default function App() {
                     ✓
                   </div>
                 )}
+                {inProg && (
+                  <div style={{
+                    position: "absolute", top: 8, right: 8, minWidth: 20, height: 20, borderRadius: 10,
+                    background: COLORS.inProgress, display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, color: "#fff", fontWeight: 700, padding: "0 4px",
+                  }}>
+                    {getChapter(novel.id) ? `${getChapter(novel.id)}/${novel.chapters}` : "…"}
+                  </div>
+                )}
               </div>
-              <div style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: isRead ? COLORS.gold : COLORS.textBook, lineHeight: 1.3 }}>
+              <div style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: finished ? COLORS.gold : inProg ? COLORS.inProgress : COLORS.textBook, lineHeight: 1.3 }}>
                 {novel.title}
               </div>
               <div style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 2 }}>
@@ -249,85 +293,174 @@ export default function App() {
       )}
 
       {/* Detail Modal */}
-      {selectedBook && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Detalle: ${selectedBook.title}`}
-          style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex",
-            alignItems: "center", justifyContent: "center", zIndex: 100, padding: 20,
-            backdropFilter: "blur(4px)",
-          }}
-          onClick={() => setSelectedBook(null)}
-        >
+      {selectedBook && (() => {
+        const status = getStatus(selectedBook.id);
+        const chapter = getChapter(selectedBook.id);
+        return (
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Detalle: ${selectedBook.title}`}
             style={{
-              background: COLORS.bgModal, borderRadius: 12, maxWidth: 480, width: "100%", padding: 28,
-              border: `1px solid ${COLORS.border}`, maxHeight: "90vh", overflowY: "auto",
+              position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex",
+              alignItems: "center", justifyContent: "center", zIndex: 100, padding: 20,
+              backdropFilter: "blur(4px)",
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => setSelectedBook(null)}
           >
-            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-              <div style={{ width: 120, minWidth: 120 }}>
-                <div style={{ aspectRatio: "200/280", borderRadius: 4, overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
-                  <CoverArt type={selectedBook.cover} isRead={readBooks.has(selectedBook.id)} title={selectedBook.title} />
+            <div
+              style={{
+                background: COLORS.bgModal, borderRadius: 12, maxWidth: 520, width: "100%", padding: 28,
+                border: `1px solid ${COLORS.border}`, maxHeight: "90vh", overflowY: "auto",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                <div style={{ width: 120, minWidth: 120 }}>
+                  <div style={{ aspectRatio: "200/280", borderRadius: 4, overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
+                    <CoverArt type={selectedBook.cover} status={status} title={selectedBook.title} />
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h2 style={{ fontSize: 22, fontWeight: 700, color: COLORS.gold, margin: "0 0 4px", lineHeight: 1.2 }}>
+                    {selectedBook.title}
+                  </h2>
+                  <div style={{ fontSize: 13, color: COLORS.textSecondary, fontStyle: "italic", marginBottom: 8 }}>
+                    {selectedBook.titleOrig} · {selectedBook.year}
+                  </div>
+                  <div style={{ fontSize: 13, color: COLORS.textBook, marginBottom: 4 }}>
+                    {selectedBook.pages} páginas · {selectedBook.chapters} capítulos
+                  </div>
+                  {selectedBook.location && (
+                    <div style={{ fontSize: 12, color: COLORS.textSecondary, marginBottom: 12 }}>
+                      Ambientación: {selectedBook.location}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+                    {selectedBook.themes.map((t) => (
+                      <span key={t} style={{
+                        padding: "2px 10px", fontSize: 11, borderRadius: 12,
+                        background: THEMES[t].color + "22", color: THEMES[t].color,
+                        border: `1px solid ${THEMES[t].color}44`,
+                      }}>
+                        {THEMES[t].label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div style={{ flex: 1 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: COLORS.gold, margin: "0 0 4px", lineHeight: 1.2 }}>
-                  {selectedBook.title}
-                </h2>
-                <div style={{ fontSize: 13, color: COLORS.textSecondary, fontStyle: "italic", marginBottom: 8 }}>
-                  {selectedBook.titleOrig} · {selectedBook.year}
+
+              <p style={{ fontSize: 14, lineHeight: 1.7, color: COLORS.textDesc, margin: "20px 0" }}>
+                {selectedBook.desc}
+              </p>
+
+              {/* Written Context */}
+              {selectedBook.writtenContext && (
+                <div style={{ margin: "16px 0", padding: "12px 16px", background: COLORS.bgCard, borderRadius: 8, border: `1px solid ${COLORS.border}` }}>
+                  <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 6 }}>
+                    Contexto histórico
+                  </div>
+                  <p style={{ fontSize: 13, lineHeight: 1.6, color: COLORS.textSecondary, margin: 0, fontStyle: "italic" }}>
+                    {selectedBook.writtenContext}
+                  </p>
                 </div>
-                <div style={{ fontSize: 13, color: COLORS.textBook, marginBottom: 12 }}>
-                  {selectedBook.pages} páginas
-                </div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-                  {selectedBook.themes.map((t) => (
-                    <span key={t} style={{
-                      padding: "2px 10px", fontSize: 11, borderRadius: 12,
-                      background: THEMES[t].color + "22", color: THEMES[t].color,
-                      border: `1px solid ${THEMES[t].color}44`,
-                    }}>
-                      {THEMES[t].label}
-                    </span>
+              )}
+
+              {/* Characters */}
+              {selectedBook.characters?.length > 0 && (
+                <div style={{ margin: "16px 0" }}>
+                  <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 10 }}>
+                    Personajes principales
+                  </div>
+                  {selectedBook.characters.map((c) => (
+                    <div key={c.name} style={{ marginBottom: 8, fontSize: 13, lineHeight: 1.5 }}>
+                      <span style={{ color: COLORS.gold, fontWeight: 600 }}>{c.name}</span>
+                      <span style={{ color: COLORS.textSecondary }}> — {c.desc}</span>
+                    </div>
                   ))}
                 </div>
+              )}
+
+              {/* Three-state reading control */}
+              <div style={{ margin: "20px 0 0" }}>
+                <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 10 }}>
+                  Estado de lectura
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {[
+                    { key: "no-leido", label: "No leído", color: COLORS.textLabel },
+                    { key: "en-progreso", label: "En progreso", color: COLORS.inProgress },
+                    { key: "terminado", label: "Terminado", color: COLORS.gold },
+                  ].map(({ key, label, color }) => {
+                    const active = status === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setBookStatus(selectedBook.id, key, key === "en-progreso" ? (chapter || 1) : null)}
+                        style={{
+                          flex: 1,
+                          padding: "10px 8px",
+                          fontSize: 13,
+                          fontWeight: active ? 700 : 400,
+                          border: `1px solid ${active ? color : COLORS.border}`,
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          background: active ? color + "22" : "transparent",
+                          color: active ? color : COLORS.textLabel,
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        {key === "terminado" && active ? "✓ " : ""}{label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Chapter input for "en progreso" */}
+                {status === "en-progreso" && (
+                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
+                    <label style={{ fontSize: 13, color: COLORS.textSecondary }}>
+                      Capítulo actual:
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={selectedBook.chapters}
+                      value={chapter || ""}
+                      onChange={(e) => {
+                        let ch = parseInt(e.target.value);
+                        if (isNaN(ch) || ch < 1) ch = 1;
+                        if (ch > selectedBook.chapters) ch = selectedBook.chapters;
+                        setBookStatus(selectedBook.id, "en-progreso", ch);
+                      }}
+                      style={{
+                        width: 60, padding: "6px 10px", fontSize: 14, textAlign: "center",
+                        background: COLORS.bgCard, border: `1px solid ${COLORS.borderInProgress}`, borderRadius: 6,
+                        color: COLORS.inProgress, outline: "none", fontFamily: "inherit",
+                      }}
+                    />
+                    <span style={{ fontSize: 12, color: COLORS.textMuted }}>
+                      de {selectedBook.chapters}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              <button
+                onClick={() => setSelectedBook(null)}
+                style={{
+                  width: "100%", padding: "10px", fontSize: 13,
+                  border: "none", background: "transparent", color: COLORS.textMuted,
+                  cursor: "pointer", marginTop: 16, fontFamily: "inherit",
+                }}
+              >
+                Cerrar
+              </button>
             </div>
-
-            <p style={{ fontSize: 14, lineHeight: 1.7, color: COLORS.textDesc, margin: "20px 0" }}>
-              {selectedBook.desc}
-            </p>
-
-            <button
-              onClick={() => toggleRead(selectedBook.id)}
-              style={{
-                width: "100%", padding: "12px", fontSize: 14, fontWeight: 600,
-                border: readBooks.has(selectedBook.id) ? `1px solid ${COLORS.borderRead}` : `1px solid ${COLORS.gold}`,
-                borderRadius: 8, cursor: "pointer", transition: "all 0.2s",
-                background: readBooks.has(selectedBook.id) ? "transparent" : COLORS.gold,
-                color: readBooks.has(selectedBook.id) ? COLORS.textSecondary : COLORS.bgMain,
-              }}
-            >
-              {readBooks.has(selectedBook.id) ? "✓ Leído — Desmarcar" : "Marcar como leído"}
-            </button>
-
-            <button
-              onClick={() => setSelectedBook(null)}
-              style={{
-                width: "100%", padding: "10px", fontSize: 13,
-                border: "none", background: "transparent", color: COLORS.textMuted,
-                cursor: "pointer", marginTop: 8,
-              }}
-            >
-              Cerrar
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

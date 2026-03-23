@@ -1,11 +1,14 @@
 import { memo } from "react";
 import { COLORS } from "../theme.js";
 
-const CoverArt = ({ type, isRead, title }) => {
-  const bg = isRead ? COLORS.bgCardRead : COLORS.bgCard;
-  const fg = isRead ? COLORS.gold : COLORS.goldDim;
-  const accent = isRead ? COLORS.goldAccent : COLORS.goldAccentDim;
-  const dim = isRead ? COLORS.decorDim : COLORS.decorDimDark;
+const CoverArt = ({ type, isRead, status, title }) => {
+  const effectiveStatus = status || (isRead ? "terminado" : "no-leido");
+  const isTerminado = effectiveStatus === "terminado";
+  const isEnProgreso = effectiveStatus === "en-progreso";
+  const bg = isTerminado ? COLORS.bgCardRead : isEnProgreso ? COLORS.bgCardInProgress : COLORS.bgCard;
+  const fg = isTerminado ? COLORS.gold : isEnProgreso ? COLORS.inProgress : COLORS.goldDim;
+  const accent = isTerminado ? COLORS.goldAccent : isEnProgreso ? COLORS.inProgress : COLORS.goldAccentDim;
+  const dim = isTerminado ? COLORS.decorDim : isEnProgreso ? COLORS.borderInProgress : COLORS.decorDimDark;
 
   const Border = () => (
     <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
