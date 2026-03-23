@@ -95,9 +95,16 @@ export default function App() {
       : a.title.localeCompare(b.title)
   );
 
+  const getProportionalPages = (novel) => {
+    const ch = getChapter(novel.id);
+    if (!ch || !novel.chapters) return 0;
+    return Math.round((ch / novel.chapters) * novel.pages);
+  };
+
   const totalPages = NOVELS.reduce((s, n) => s + n.pages, 0);
-  const readPages = NOVELS.filter((n) => isFinished(n.id)).reduce((s, n) => s + n.pages, 0);
-  const inProgressPages = NOVELS.filter((n) => isInProgress(n.id)).reduce((s, n) => s + n.pages, 0);
+  const finishedPages = NOVELS.filter((n) => isFinished(n.id)).reduce((s, n) => s + n.pages, 0);
+  const inProgressPages = NOVELS.filter((n) => isInProgress(n.id)).reduce((s, n) => s + getProportionalPages(n), 0);
+  const readPages = finishedPages + inProgressPages;
   const finishedCount = NOVELS.filter((n) => isFinished(n.id)).length;
   const inProgressCount = NOVELS.filter((n) => isInProgress(n.id)).length;
   const remainPages = totalPages - readPages;
@@ -115,7 +122,7 @@ export default function App() {
       {/* Header */}
       <div style={{ borderBottom: `1px solid ${COLORS.border}`, padding: "28px 24px 20px", textAlign: "center" }}>
         <div style={{ fontSize: 11, letterSpacing: 6, textTransform: "uppercase", color: COLORS.textSecondary, marginBottom: 8 }}>
-          Biblioteca personal
+          ni idea, estaba leyendo a
         </div>
         <h1 style={{ fontSize: 32, fontWeight: 700, color: COLORS.gold, margin: "0 0 4px", lineHeight: 1.1 }}>
           Fiódor Dostoievski
@@ -142,7 +149,7 @@ export default function App() {
           ))}
         </div>
         <div style={{ maxWidth: 700, margin: "14px auto 0" }}>
-          <StatsBar read={readPages} inProgress={inProgressPages} total={totalPages} />
+          <StatsBar read={finishedPages} inProgress={inProgressPages} total={totalPages} />
         </div>
       </div>
 
@@ -292,6 +299,32 @@ export default function App() {
         </div>
       )}
 
+      {/* Acerca de */}
+      <div style={{ borderTop: `1px solid ${COLORS.border}`, padding: "40px 24px", maxWidth: 700, margin: "20px auto 0" }}>
+        <div style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 16, textAlign: "center" }}>
+          Acerca de
+        </div>
+        <div style={{ fontSize: 14, lineHeight: 1.8, color: COLORS.textSecondary }}>
+          <p style={{ margin: "0 0 12px" }}>
+            Esta página es un registro personal de lectura dedicado a la obra de <span style={{ color: COLORS.gold }}>Fiódor Mijáilovich Dostoievski</span> (1821–1881), considerado uno de los más grandes novelistas de la literatura universal. Su exploración de la psicología humana, la moralidad y el sufrimiento sigue siendo profundamente relevante.
+          </p>
+          <p style={{ margin: "0 0 12px" }}>
+            Desarrollada por{" "}
+            <a
+              href="https://github.com/facundoraulbistolfi"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: COLORS.gold, textDecoration: "underline" }}
+            >
+              Facundo Raúl Bistolfi
+            </a>.
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: COLORS.textMuted, fontStyle: "italic" }}>
+            Hecha con Claude Code.
+          </p>
+        </div>
+      </div>
+
       {/* Detail Modal */}
       {selectedBook && (() => {
         const status = getStatus(selectedBook.id);
@@ -381,41 +414,80 @@ export default function App() {
                 </div>
               )}
 
-              {/* Three-state reading control */}
+              {/* Reading state slider */}
               <div style={{ margin: "20px 0 0" }}>
                 <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 10 }}>
                   Estado de lectura
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {[
-                    { key: "no-leido", label: "No leído", color: COLORS.textLabel },
-                    { key: "en-progreso", label: "En progreso", color: COLORS.inProgress },
-                    { key: "terminado", label: "Terminado", color: COLORS.gold },
-                  ].map(({ key, label, color }) => {
-                    const active = status === key;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => setBookStatus(selectedBook.id, key, key === "en-progreso" ? (chapter || 1) : null)}
-                        style={{
-                          flex: 1,
-                          padding: "10px 8px",
-                          fontSize: 13,
-                          fontWeight: active ? 700 : 400,
-                          border: `1px solid ${active ? color : COLORS.border}`,
-                          borderRadius: 8,
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                          background: active ? color + "22" : "transparent",
-                          color: active ? color : COLORS.textLabel,
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        {key === "terminado" && active ? "✓ " : ""}{label}
-                      </button>
-                    );
-                  })}
-                </div>
+                {(() => {
+                  const sliderValue = status === "terminado" ? 2 : status === "en-progreso" ? 1 : 0;
+                  const statusLabels = ["No leído", "En progreso", "Terminado"];
+                  const statusColors = [COLORS.textLabel, COLORS.inProgress, COLORS.gold];
+                  const activeColor = statusColors[sliderValue];
+                  return (
+                    <>
+                      <div style={{ position: "relative", padding: "8px 0" }}>
+                        <style>{`
+                          input[type="range"].reading-slider {
+                            -webkit-appearance: none;
+                            appearance: none;
+                            width: 100%;
+                            height: 6px;
+                            border-radius: 3px;
+                            outline: none;
+                            cursor: pointer;
+                          }
+                          input[type="range"].reading-slider::-webkit-slider-thumb {
+                            -webkit-appearance: none;
+                            appearance: none;
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 50%;
+                            border: 2px solid currentColor;
+                            cursor: pointer;
+                            margin-top: -1px;
+                          }
+                          input[type="range"].reading-slider::-moz-range-thumb {
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 50%;
+                            border: 2px solid currentColor;
+                            cursor: pointer;
+                          }
+                        `}</style>
+                        <input
+                          type="range"
+                          className="reading-slider"
+                          min={0}
+                          max={2}
+                          step={1}
+                          value={sliderValue}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            const keys = ["no-leido", "en-progreso", "terminado"];
+                            setBookStatus(selectedBook.id, keys[val], keys[val] === "en-progreso" ? (chapter || 1) : null);
+                          }}
+                          style={{
+                            background: `linear-gradient(to right, ${activeColor} ${sliderValue * 50}%, ${COLORS.border} ${sliderValue * 50}%)`,
+                            color: activeColor,
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                        {statusLabels.map((label, i) => (
+                          <span key={label} style={{
+                            fontSize: 11,
+                            fontWeight: sliderValue === i ? 700 : 400,
+                            color: sliderValue === i ? statusColors[i] : COLORS.textMuted,
+                            transition: "color 0.2s",
+                          }}>
+                            {sliderValue === 2 && i === 2 ? "✓ " : ""}{label}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Chapter input for "en progreso" */}
                 {status === "en-progreso" && (
