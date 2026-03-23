@@ -1,8 +1,15 @@
-const CoverArt = ({ type, isRead }) => {
-  const bg = isRead ? "#1a1a2e" : "#0d0d1a";
-  const fg = isRead ? "#d4a853" : "#7a6a38";
-  const accent = isRead ? "#e8c46a" : "#9a8448";
-  const dim = isRead ? "#4a3a20" : "#2a2218";
+import { memo } from "react";
+import { COLORS } from "../theme.js";
+
+const CoverArt = ({ type, isRead, title }) => {
+  const bg = isRead ? COLORS.bgCardRead : COLORS.bgCard;
+  const fg = isRead ? COLORS.gold : COLORS.goldDim;
+  const accent = isRead ? COLORS.goldAccent : COLORS.goldAccentDim;
+  const dim = isRead ? COLORS.decorDim : COLORS.decorDimDark;
+
+  const Border = () => (
+    <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+  );
 
   const covers = {
     // Pobres gentes — carta y pluma
@@ -16,7 +23,7 @@ const CoverArt = ({ type, isRead }) => {
         </defs>
         <rect width="200" height="280" fill="url(#bg-letter)" />
         {/* Borde decorativo */}
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         <rect x="14" y="14" width="172" height="252" fill="none" stroke={dim} strokeWidth="0.3" />
         {/* Sobre */}
         <rect x="45" y="90" width="110" height="78" rx="2" fill="none" stroke={fg} strokeWidth="1.5" />
@@ -48,7 +55,7 @@ const CoverArt = ({ type, isRead }) => {
           </linearGradient>
         </defs>
         <rect width="200" height="280" fill="url(#bg-double)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Línea de espejo central */}
         <line x1="100" y1="30" x2="100" y2="250" stroke={fg} strokeWidth="0.5" strokeDasharray="4,4" opacity="0.3" />
         {/* Figura izquierda — sólida */}
@@ -81,7 +88,7 @@ const CoverArt = ({ type, isRead }) => {
         </defs>
         <rect width="200" height="280" fill={bg} />
         <rect width="200" height="280" fill="url(#moonGlow)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Estrellas */}
         {[[35,45],[155,38],[170,70],[28,80],[165,110],[40,120]].map(([x,y],i) => (
           <circle key={i} cx={x} cy={y} r="0.8" fill={accent} opacity="0.5" />
@@ -119,7 +126,7 @@ const CoverArt = ({ type, isRead }) => {
     broken: (
       <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
         <rect width="200" height="280" fill={bg} />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Figura de pie — aristócrata */}
         <circle cx="140" cy="80" r="12" fill="none" stroke={fg} strokeWidth="1.5" />
         <line x1="140" y1="92" x2="140" y2="145" stroke={fg} strokeWidth="1.8" />
@@ -154,7 +161,7 @@ const CoverArt = ({ type, isRead }) => {
           </linearGradient>
         </defs>
         <rect width="200" height="280" fill="url(#bg-stairs)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Perspectiva — punto de fuga */}
         <line x1="100" y1="40" x2="30" y2="230" stroke={dim} strokeWidth="0.3" opacity="0.2" />
         <line x1="100" y1="40" x2="170" y2="230" stroke={dim} strokeWidth="0.3" opacity="0.2" />
@@ -189,7 +196,7 @@ const CoverArt = ({ type, isRead }) => {
         </defs>
         <rect width="200" height="280" fill={bg} />
         <rect width="200" height="280" fill="url(#bloodGrad)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Mango del hacha */}
         <line x1="100" y1="45" x2="104" y2="210" stroke={fg} strokeWidth="3" strokeLinecap="round" />
         {/* Hoja del hacha */}
@@ -222,7 +229,7 @@ const CoverArt = ({ type, isRead }) => {
         </defs>
         <rect width="200" height="280" fill={bg} />
         <rect width="200" height="280" fill="url(#rouletteGlow)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Ruleta */}
         <circle cx="100" cy="128" r="55" fill="none" stroke={fg} strokeWidth="1.8" />
         <circle cx="100" cy="128" r="45" fill="none" stroke={fg} strokeWidth="0.6" opacity="0.4" />
@@ -275,7 +282,7 @@ const CoverArt = ({ type, isRead }) => {
         </defs>
         <rect width="200" height="280" fill={bg} />
         <rect width="200" height="280" fill="url(#haloGlow)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Aureola */}
         <ellipse cx="100" cy="75" rx="24" ry="7" fill="none" stroke={accent} strokeWidth="2" opacity="0.9" />
         {/* Rayos de la aureola */}
@@ -317,7 +324,7 @@ const CoverArt = ({ type, isRead }) => {
     ring: (
       <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
         <rect width="200" height="280" fill={bg} />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Anillo principal */}
         <ellipse cx="100" cy="125" rx="38" ry="52" fill="none" stroke={fg} strokeWidth="2.5" />
         <ellipse cx="100" cy="125" rx="32" ry="46" fill="none" stroke={fg} strokeWidth="0.5" opacity="0.3" />
@@ -349,7 +356,7 @@ const CoverArt = ({ type, isRead }) => {
         </defs>
         <rect width="200" height="280" fill={bg} />
         <rect width="200" height="280" fill="url(#fireGlow)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Llama central */}
         <path d="M100,55 Q88,80 92,108 Q97,88 100,100 Q103,88 108,108 Q112,80 100,55" fill="none" stroke={accent} strokeWidth="2" />
         {/* Llamas laterales */}
@@ -377,7 +384,7 @@ const CoverArt = ({ type, isRead }) => {
     mirror: (
       <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
         <rect width="200" height="280" fill={bg} />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Marco del espejo — oval elegante */}
         <ellipse cx="100" cy="118" rx="44" ry="62" fill="none" stroke={fg} strokeWidth="2.5" />
         <ellipse cx="100" cy="118" rx="38" ry="56" fill="none" stroke={fg} strokeWidth="0.5" opacity="0.3" />
@@ -412,7 +419,7 @@ const CoverArt = ({ type, isRead }) => {
           </linearGradient>
         </defs>
         <rect width="200" height="280" fill="url(#bg-brothers)" />
-        <rect x="10" y="10" width="180" height="260" fill="none" stroke={dim} strokeWidth="0.8" />
+        <Border />
         {/* Cruz ortodoxa al centro-arriba */}
         <line x1="100" y1="38" x2="100" y2="65" stroke={accent} strokeWidth="1.8" opacity="0.7" />
         <line x1="88" y1="47" x2="112" y2="47" stroke={accent} strokeWidth="1.8" opacity="0.7" />
@@ -446,7 +453,12 @@ const CoverArt = ({ type, isRead }) => {
     ),
   };
 
-  return covers[type] || covers.axe;
+  const cover = covers[type] || covers.axe;
+  return (
+    <div role="img" aria-label={title ? `Portada de ${title}` : "Portada de novela"}>
+      {cover}
+    </div>
+  );
 };
 
-export default CoverArt;
+export default memo(CoverArt);
