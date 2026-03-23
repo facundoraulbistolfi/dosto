@@ -18,4 +18,8 @@ export const COLORS = {
   decorDimDark: "#2a2218",
   textBook: "#8a7a60",
   textDesc: "#9a8a70",
+  inProgress: "#5a8a6a",
+  inProgressDim: "#3a5a4a",
+  borderInProgress: "#2a4a3a",
+  bgCardInProgress: "#0f1a1a",
 };
