@@ -420,10 +420,11 @@ export default function App() {
                   Estado de lectura
                 </div>
                 {(() => {
-                  const sliderValue = status === "terminado" ? 2 : status === "en-progreso" ? 1 : 0;
-                  const statusLabels = ["No leído", "En progreso", "Terminado"];
-                  const statusColors = [COLORS.textLabel, COLORS.inProgress, COLORS.gold];
-                  const activeColor = statusColors[sliderValue];
+                  const maxCh = selectedBook.chapters;
+                  const sliderValue = status === "terminado" ? maxCh : status === "en-progreso" ? (chapter || 1) : 0;
+                  const pct = maxCh > 0 ? (sliderValue / maxCh) * 100 : 0;
+                  const activeColor = sliderValue === 0 ? COLORS.textLabel : sliderValue === maxCh ? COLORS.gold : COLORS.inProgress;
+                  const statusLabel = sliderValue === 0 ? "No leído" : sliderValue === maxCh ? "Terminado" : "En progreso";
                   return (
                     <>
                       <div style={{ position: "relative", padding: "8px 0" }}>
@@ -459,64 +460,36 @@ export default function App() {
                           type="range"
                           className="reading-slider"
                           min={0}
-                          max={2}
+                          max={maxCh}
                           step={1}
                           value={sliderValue}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
-                            const keys = ["no-leido", "en-progreso", "terminado"];
-                            setBookStatus(selectedBook.id, keys[val], keys[val] === "en-progreso" ? (chapter || 1) : null);
+                            if (val === 0) {
+                              setBookStatus(selectedBook.id, "no-leido");
+                            } else if (val === maxCh) {
+                              setBookStatus(selectedBook.id, "terminado");
+                            } else {
+                              setBookStatus(selectedBook.id, "en-progreso", val);
+                            }
                           }}
                           style={{
-                            background: `linear-gradient(to right, ${activeColor} ${sliderValue * 50}%, ${COLORS.border} ${sliderValue * 50}%)`,
+                            background: `linear-gradient(to right, ${activeColor} ${pct}%, ${COLORS.border} ${pct}%)`,
                             color: activeColor,
                           }}
                         />
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                        {statusLabels.map((label, i) => (
-                          <span key={label} style={{
-                            fontSize: 11,
-                            fontWeight: sliderValue === i ? 700 : 400,
-                            color: sliderValue === i ? statusColors[i] : COLORS.textMuted,
-                            transition: "color 0.2s",
-                          }}>
-                            {sliderValue === 2 && i === 2 ? "✓ " : ""}{label}
-                          </span>
-                        ))}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: activeColor }}>
+                          {sliderValue === maxCh ? "✓ " : ""}{statusLabel}
+                        </span>
+                        <span style={{ fontSize: 12, color: COLORS.textMuted }}>
+                          {sliderValue} / {maxCh} capítulos
+                        </span>
                       </div>
                     </>
                   );
                 })()}
-
-                {/* Chapter input for "en progreso" */}
-                {status === "en-progreso" && (
-                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
-                    <label style={{ fontSize: 13, color: COLORS.textSecondary }}>
-                      Capítulo actual:
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={selectedBook.chapters}
-                      value={chapter || ""}
-                      onChange={(e) => {
-                        let ch = parseInt(e.target.value);
-                        if (isNaN(ch) || ch < 1) ch = 1;
-                        if (ch > selectedBook.chapters) ch = selectedBook.chapters;
-                        setBookStatus(selectedBook.id, "en-progreso", ch);
-                      }}
-                      style={{
-                        width: 60, padding: "6px 10px", fontSize: 14, textAlign: "center",
-                        background: COLORS.bgCard, border: `1px solid ${COLORS.borderInProgress}`, borderRadius: 6,
-                        color: COLORS.inProgress, outline: "none", fontFamily: "inherit",
-                      }}
-                    />
-                    <span style={{ fontSize: 12, color: COLORS.textMuted }}>
-                      de {selectedBook.chapters}
-                    </span>
-                  </div>
-                )}
               </div>
 
               <button
