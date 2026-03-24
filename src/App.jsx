@@ -3,6 +3,7 @@ import { NOVELS, THEMES } from "./data.js";
 import { COLORS } from "./theme.js";
 import CoverArt from "./components/CoverArt.jsx";
 import StatsBar from "./components/StatsBar.jsx";
+import RelationshipDiagram from "./components/RelationshipDiagram.jsx";
 
 const STORAGE_KEY = "dostoevsky-read";
 
@@ -411,6 +412,18 @@ export default function App() {
                       <span style={{ color: COLORS.textSecondary }}> — {c.desc}</span>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Relationship diagram */}
+              {selectedBook.relationships?.length > 0 && (
+                <div style={{ margin: "16px 0" }}>
+                  <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 10 }}>
+                    Relaciones entre personajes
+                  </div>
+                  <div style={{ background: COLORS.bgCard, borderRadius: 8, border: `1px solid ${COLORS.border}`, overflow: "hidden" }}>
+                    <RelationshipDiagram characters={selectedBook.characters} relationships={selectedBook.relationships} />
+                  </div>
                 </div>
               )}
 
