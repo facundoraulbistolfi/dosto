@@ -10,8 +10,7 @@ const RELATION_STYLES = {
   manipulacion: { color: "#A855F7", dash: "5 3", width: 2, label: "Manipulación" },
   investigacion: { color: "#6366F1", dash: "4 3", width: 1.5, label: "Investigación" },
   mentor: { color: "#3B82F6", dash: "none", width: 1.5, label: "Mentor" },
-  servicio: { color: "#6B7280", dash: "none", width: 1.5, label: "Servicio" },
-  crimen: { color: "#DC2626", dash: "4 2", width: 2, label: "Crimen" },
+  protector: { color: "#22C55E", dash: "none", width: 1.5, label: "Protector" },
 };
 
 function getShortName(name) {
