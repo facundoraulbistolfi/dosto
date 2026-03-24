@@ -10,19 +10,18 @@ const RELATION_STYLES = {
   manipulacion: { color: "#A855F7", dash: "5 3", width: 2, label: "Manipulación" },
   investigacion: { color: "#6366F1", dash: "4 3", width: 1.5, label: "Investigación" },
   mentor: { color: "#3B82F6", dash: "none", width: 1.5, label: "Mentor" },
+  servicio: { color: "#6B7280", dash: "none", width: 1.5, label: "Servicio" },
+  crimen: { color: "#DC2626", dash: "4 2", width: 2, label: "Crimen" },
 };
 
 function getShortName(name) {
   if (name.startsWith("El ") || name.startsWith("La ")) return name;
   const parts = name.replace(/\(.*?\)/g, "").trim().split(" ");
   if (parts.length === 1) return parts[0];
-  // For "Goliadkin Jr." keep it
   if (name.includes("Jr.")) return "Goliadkin Jr.";
-  // For single-word known names, return as-is
-  // Otherwise return the last "main" name (surname), skipping patronymics
-  // Patronymics typically end in -ovich/-ievna/-ovna
+  // Skip patronymics (end in -ovich/-ievna/-ovna variants)
   const nonPatronymic = parts.filter(
-    (p) => !/óvich$|ovich$|ievna$|ovna$|évich$|ávlovich$/.test(p)
+    (p) => !/óvich$|ovich$|ievna$|ovna$|évich$|ávlovich$|éievna$/.test(p)
   );
   if (nonPatronymic.length >= 2) return nonPatronymic[nonPatronymic.length - 1];
   return parts[parts.length - 1];
@@ -32,7 +31,6 @@ function clampText(text, maxLen) {
   return text.length > maxLen ? text.slice(0, maxLen - 1) + "…" : text;
 }
 
-// Compute intersection of line from center of rect to target point with rect boundary
 function rectEdgePoint(cx, cy, hw, hh, tx, ty) {
   const dx = tx - cx;
   const dy = ty - cy;
@@ -47,35 +45,44 @@ function RelationshipDiagram({ characters, relationships }) {
   const [hovered, setHovered] = useState(null);
 
   const n = characters.length;
-  const W = 460;
-  const legendH = 44;
-  const diagramH = n <= 3 ? 220 : 280;
+
+  // Dynamic sizing based on character count
+  let W, diagramH, rx, ry, nodeW, nodeH, fontSize, labelSize, nameClamp;
+  if (n <= 4) {
+    W = 460; diagramH = 230; rx = 130; ry = 75; nodeW = 110; nodeH = 32; fontSize = 12; labelSize = 9; nameClamp = 14;
+  } else if (n <= 6) {
+    W = 480; diagramH = 300; rx = 160; ry = 110; nodeW = 110; nodeH = 32; fontSize = 12; labelSize = 9; nameClamp = 14;
+  } else if (n <= 8) {
+    W = 540; diagramH = 370; rx = 190; ry = 140; nodeW = 100; nodeH = 28; fontSize = 11; labelSize = 8; nameClamp = 13;
+  } else if (n <= 11) {
+    W = 600; diagramH = 430; rx = 220; ry = 165; nodeW = 95; nodeH = 26; fontSize = 10; labelSize = 7.5; nameClamp = 12;
+  } else {
+    W = 640; diagramH = 480; rx = 240; ry = 185; nodeW = 90; nodeH = 25; fontSize = 9.5; labelSize = 7; nameClamp = 11;
+  }
+
+  // Legend sizing
+  const usedTypes = [...new Set(relationships.map((r) => r.type))];
+  const legendRows = usedTypes.length > 4 ? 2 : 1;
+  const legendH = legendRows === 2 ? 64 : 44;
   const H = diagramH + legendH;
-  const cx = W / 2;
-  const cy = diagramH / 2 + 10;
-  const rx = n <= 3 ? 130 : 160;
-  const ry = n <= 3 ? 70 : 100;
+  const cxCenter = W / 2;
+  const cyCenter = diagramH / 2 + 10;
 
   // Node positions (elliptical layout)
-  const nodeW = 110;
-  const nodeH = 32;
   const nodes = characters.map((c, i) => {
     const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
     return {
-      x: cx + rx * Math.cos(angle),
-      y: cy + ry * Math.sin(angle),
+      x: cxCenter + rx * Math.cos(angle),
+      y: cyCenter + ry * Math.sin(angle),
       name: getShortName(c.name),
       fullName: c.name,
       index: i,
     };
   });
 
-  // Collect unique relationship types used
-  const usedTypes = [...new Set(relationships.map((r) => r.type))];
-
   // Edge midpoint offset to avoid overlapping labels
   const edgeLabelOffsets = {};
-  relationships.forEach((rel, i) => {
+  relationships.forEach((rel) => {
     const key = [Math.min(rel.from, rel.to), Math.max(rel.from, rel.to)].join("-");
     if (!edgeLabelOffsets[key]) edgeLabelOffsets[key] = 0;
     else edgeLabelOffsets[key]++;
@@ -88,7 +95,6 @@ function RelationshipDiagram({ characters, relationships }) {
       style={{ width: "100%", height: "auto", display: "block" }}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Background */}
       <rect width={W} height={H} fill={COLORS.bgCard} rx={8} />
 
       {/* Edges */}
@@ -103,7 +109,6 @@ function RelationshipDiagram({ characters, relationships }) {
         const p1 = rectEdgePoint(fromNode.x, fromNode.y, hw, hh, toNode.x, toNode.y);
         const p2 = rectEdgePoint(toNode.x, toNode.y, hw, hh, fromNode.x, fromNode.y);
 
-        // Label at midpoint with perpendicular offset for duplicates
         const mx = (p1.x + p2.x) / 2;
         const my = (p1.y + p2.y) / 2;
         const dx = p2.x - p1.x;
@@ -111,37 +116,33 @@ function RelationshipDiagram({ characters, relationships }) {
         const len = Math.sqrt(dx * dx + dy * dy) || 1;
         const perpX = -dy / len;
         const perpY = dx / len;
-        const offset = rel._labelOffset * 14;
+        const offset = rel._labelOffset * (labelSize + 4);
         const lx = mx + perpX * offset;
         const ly = my + perpY * offset;
 
         const isActive = hovered === null || hovered === rel.from || hovered === rel.to;
-        const opacity = isActive ? 1 : 0.15;
+        const opacity = isActive ? 1 : 0.12;
 
-        const labelText = clampText(rel.label, 22);
+        const labelText = clampText(rel.label, n > 8 ? 18 : 22);
+        const charW = labelSize * 0.62;
 
         return (
           <g key={i} style={{ transition: "opacity 0.2s" }} opacity={opacity}>
             <line
-              x1={p1.x}
-              y1={p1.y}
-              x2={p2.x}
-              y2={p2.y}
+              x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
               stroke={style.color}
               strokeWidth={style.width}
               strokeDasharray={style.dash}
               strokeLinecap="round"
             />
-            {/* Arrow at midpoint pointing toward "to" */}
+            {/* Arrow */}
             {(() => {
-              const ax = (p1.x * 0.4 + p2.x * 0.6);
-              const ay = (p1.y * 0.4 + p2.y * 0.6);
-              const adx = p2.x - p1.x;
-              const ady = p2.y - p1.y;
-              const al = Math.sqrt(adx * adx + ady * ady) || 1;
-              const ux = adx / al;
-              const uy = ady / al;
-              const sz = 5;
+              const ax = p1.x * 0.4 + p2.x * 0.6;
+              const ay = p1.y * 0.4 + p2.y * 0.6;
+              const al = Math.sqrt(dx * dx + dy * dy) || 1;
+              const ux = dx / al;
+              const uy = dy / al;
+              const sz = n > 8 ? 4 : 5;
               return (
                 <polygon
                   points={`${ax},${ay} ${ax - ux * sz + uy * sz * 0.6},${ay - uy * sz - ux * sz * 0.6} ${ax - ux * sz - uy * sz * 0.6},${ay - uy * sz + ux * sz * 0.6}`}
@@ -149,22 +150,21 @@ function RelationshipDiagram({ characters, relationships }) {
                 />
               );
             })()}
-            {/* Label background + text */}
+            {/* Label */}
             <rect
-              x={lx - labelText.length * 3.2 - 4}
-              y={ly - 7}
-              width={labelText.length * 6.4 + 8}
-              height={14}
+              x={lx - labelText.length * charW / 2 - 3}
+              y={ly - labelSize / 2 - 2}
+              width={labelText.length * charW + 6}
+              height={labelSize + 4}
               fill={COLORS.bgCard}
-              rx={3}
-              opacity={0.9}
+              rx={2}
+              opacity={0.92}
             />
             <text
-              x={lx}
-              y={ly + 3.5}
+              x={lx} y={ly + labelSize * 0.35}
               textAnchor="middle"
               fill={style.color}
-              fontSize={9}
+              fontSize={labelSize}
               fontFamily="EB Garamond, serif"
               opacity={0.9}
             >
@@ -177,8 +177,8 @@ function RelationshipDiagram({ characters, relationships }) {
       {/* Nodes */}
       {nodes.map((node) => {
         const isActive = hovered === null || hovered === node.index;
-        const opacity = isActive ? 1 : 0.3;
-        const displayName = clampText(node.name, 14);
+        const opacity = isActive ? 1 : 0.25;
+        const displayName = clampText(node.name, nameClamp);
 
         return (
           <g
@@ -189,21 +189,18 @@ function RelationshipDiagram({ characters, relationships }) {
             onMouseLeave={() => setHovered(null)}
           >
             <rect
-              x={node.x - nodeW / 2}
-              y={node.y - nodeH / 2}
-              width={nodeW}
-              height={nodeH}
-              rx={6}
+              x={node.x - nodeW / 2} y={node.y - nodeH / 2}
+              width={nodeW} height={nodeH}
+              rx={5}
               fill={COLORS.bgModal}
               stroke={hovered === node.index ? COLORS.gold : COLORS.border}
               strokeWidth={hovered === node.index ? 1.5 : 1}
             />
             <text
-              x={node.x}
-              y={node.y + 4.5}
+              x={node.x} y={node.y + fontSize * 0.35}
               textAnchor="middle"
               fill={hovered === node.index ? COLORS.gold : COLORS.text}
-              fontSize={12}
+              fontSize={fontSize}
               fontFamily="EB Garamond, serif"
               fontWeight={600}
             >
@@ -219,25 +216,29 @@ function RelationshipDiagram({ characters, relationships }) {
         {usedTypes.map((type, i) => {
           const style = RELATION_STYLES[type];
           if (!style) return null;
-          const spacing = W / (usedTypes.length + 1);
-          const lx = spacing * (i + 1);
+          const row = legendRows === 2 ? Math.floor(i / Math.ceil(usedTypes.length / 2)) : 0;
+          const itemsInRow = legendRows === 2
+            ? (row === 0 ? Math.ceil(usedTypes.length / 2) : usedTypes.length - Math.ceil(usedTypes.length / 2))
+            : usedTypes.length;
+          const indexInRow = legendRows === 2
+            ? (row === 0 ? i : i - Math.ceil(usedTypes.length / 2))
+            : i;
+          const spacing = W / (itemsInRow + 1);
+          const lx = spacing * (indexInRow + 1);
+          const ly = 22 + row * 22;
           return (
-            <g key={type} transform={`translate(${lx}, 26)`}>
+            <g key={type} transform={`translate(${lx}, ${ly})`}>
               <line
-                x1={-18}
-                y1={0}
-                x2={-4}
-                y2={0}
+                x1={-18} y1={0} x2={-4} y2={0}
                 stroke={style.color}
                 strokeWidth={style.width}
                 strokeDasharray={style.dash}
                 strokeLinecap="round"
               />
               <text
-                x={2}
-                y={3.5}
+                x={2} y={3.5}
                 fill={style.color}
-                fontSize={9}
+                fontSize={8.5}
                 fontFamily="EB Garamond, serif"
               >
                 {style.label}

@@ -29,11 +29,11 @@ export const NOVELS = [
     characters: [
       { name: "Makar Dévushkin", desc: "Funcionario copista empobrecido, bondadoso y sentimental" },
       { name: "Várvara Dobrosiólova", desc: "Joven huérfana y costurera, corresponsal de Makar" },
-      { name: "Bykov", desc: "Terrateniente adinerado que se casa con Várara por conveniencia" },
+      { name: "Bykov", desc: "Terrateniente adinerado e indiferente que irrumpe en la vida de Várvara" },
     ],
     relationships: [
       { from: 0, to: 1, type: "amor-no-correspondido", label: "amor epistolar" },
-      { from: 2, to: 1, type: "manipulacion", label: "matrimonio forzado" },
+      { from: 2, to: 1, type: "manipulacion", label: "interés por conveniencia" },
     ],
   },
   {
@@ -44,7 +44,7 @@ export const NOVELS = [
     pages: 140,
     chapters: 13,
     themes: ["identidad", "psicologia"],
-    desc: "Un burócrata descubre que un doble idéntico invade su vida, precipitándolo hacia la locura.",
+    desc: "Un burócrata descubre que un doble idéntico invade su vida, amenazando su identidad y su cordura.",
     cover: "double",
     location: "San Petersburgo, Rusia",
     writtenContext: "Segunda novela, publicada apenas semanas después de Pobres gentes en 1846. Fue mal recibida por la crítica. Dostoievski la consideraba una de sus ideas más importantes, aunque reconocía que la forma había fallado.",
@@ -74,7 +74,7 @@ export const NOVELS = [
     characters: [
       { name: "El Soñador", desc: "Narrador anónimo, joven solitario e idealista que vive en sus fantasías" },
       { name: "Nástenka", desc: "Joven vivaz que espera el regreso de su amado junto al canal" },
-      { name: "El inquilino", desc: "Amado ausente de Nástenka que regresa al final" },
+      { name: "El inquilino", desc: "Joven de quien Nástenka está enamorada, ausente durante la historia" },
     ],
     relationships: [
       { from: 0, to: 1, type: "amor-no-correspondido", label: "se enamora de" },
@@ -122,11 +122,11 @@ export const NOVELS = [
     writtenContext: "Escrita en 1864, año trágico para Dostoievski: murieron su esposa María y su hermano Mijaíl. Considerada precursora del existencialismo, fue una respuesta directa al racionalismo utópico de Chernishevski.",
     characters: [
       { name: "El Hombre del Subsuelo", desc: "Narrador anónimo, exfuncionario amargado y contradictorio de 40 años" },
-      { name: "Liza", desc: "Joven prostituta a quien el narrador intenta redimir y luego humilla" },
+      { name: "Liza", desc: "Joven prostituta que el narrador encuentra una noche y con quien entabla una relación ambigua" },
       { name: "Zvérkov", desc: "Antiguo compañero de escuela, exitoso y arrogante, objeto de la envidia del narrador" },
     ],
     relationships: [
-      { from: 0, to: 1, type: "manipulacion", label: "humilla e intenta redimir" },
+      { from: 0, to: 1, type: "manipulacion", label: "relación ambigua" },
       { from: 0, to: 2, type: "rivalidad", label: "envidia y resentimiento" },
     ],
   },
@@ -143,14 +143,14 @@ export const NOVELS = [
     location: "San Petersburgo, Rusia",
     writtenContext: "Escrita entre 1865-1866, publicada por entregas en El Mensajero Ruso. Dostoievski la escribió bajo enorme presión económica, agobiado por deudas de juego y las de la revista de su difunto hermano.",
     characters: [
-      { name: "Rodión Raskólnikov", desc: "Estudiante empobrecido que planea y comete un doble asesinato" },
+      { name: "Rodión Raskólnikov", desc: "Estudiante empobrecido obsesionado con una teoría sobre los hombres extraordinarios" },
       { name: "Sonia Marmeládova", desc: "Joven que se sacrifica por su familia, guía moral de Raskólnikov" },
       { name: "Porfirio Petróvich", desc: "Juez de instrucción astuto que investiga el crimen" },
       { name: "Dunia Raskólnikova", desc: "Hermana de Rodión, fuerte e independiente" },
       { name: "Svidrigáilov", desc: "Terrateniente corrupto y nihilista obsesionado con Dunia" },
     ],
     relationships: [
-      { from: 0, to: 1, type: "amor", label: "redención mutua" },
+      { from: 0, to: 1, type: "amor", label: "vínculo espiritual" },
       { from: 0, to: 3, type: "familia", label: "hermanos" },
       { from: 2, to: 0, type: "investigacion", label: "investiga" },
       { from: 4, to: 3, type: "amor-no-correspondido", label: "obsesión" },
@@ -173,7 +173,7 @@ export const NOVELS = [
       { name: "Alexéi Ivánovich", desc: "Tutor ruso, narrador, atrapado por la adicción al juego" },
       { name: "Polina", desc: "Hijastra del General, mujer orgullosa de quien Alexéi está enamorado" },
       { name: "El General", desc: "Militar retirado endeudado que espera la herencia de su tía" },
-      { name: "La Abuelita (Antonida Vasílievna)", desc: "Anciana rica que llega al casino y pierde una fortuna en la ruleta" },
+      { name: "La Abuelita (Antonida Vasílievna)", desc: "Anciana rica y enérgica cuya llegada inesperada trastorna los planes de todos" },
       { name: "Mr. Astley", desc: "Inglés reservado y honorable, enamorado en secreto de Polina" },
     ],
     relationships: [
@@ -191,7 +191,7 @@ export const NOVELS = [
     pages: 640,
     chapters: 44,
     themes: ["fe", "sociedad", "amor", "psicologia"],
-    desc: "El príncipe Myshkin, un hombre de bondad cristiana absoluta, es destruido por la sociedad petersburguesa.",
+    desc: "El príncipe Myshkin, un hombre de bondad cristiana absoluta, se enfrenta a la sociedad petersburguesa.",
     cover: "halo",
     location: "San Petersburgo y Pávlovsk, Rusia (con prólogo en Suiza)",
     writtenContext: "Escrita entre 1867-1869 durante el primer viaje al extranjero de Dostoievski con su esposa Anna. Compuesta entre Ginebra, Vevey, Milán y Florencia, mientras el matrimonio vivía en la pobreza.",
@@ -225,11 +225,11 @@ export const NOVELS = [
     characters: [
       { name: "Pável Pávlovich Trúsotski", desc: "Viudo sumiso que busca al amante de su difunta esposa" },
       { name: "Alexéi Ivánovich Velchanínov", desc: "Ex amante elegante y ocioso, atormentado por la culpa" },
-      { name: "Liza", desc: "Hija de la difunta esposa, posiblemente hija biológica de Velchanínov" },
+      { name: "Liza", desc: "Hija pequeña de la difunta esposa de Trúsotski, cuya paternidad es ambigua" },
     ],
     relationships: [
       { from: 0, to: 1, type: "rivalidad", label: "busca al amante" },
-      { from: 1, to: 2, type: "familia", label: "posible padre" },
+      { from: 1, to: 2, type: "familia", label: "vínculo con Liza" },
       { from: 0, to: 2, type: "familia", label: "padre legal" },
     ],
   },
@@ -249,13 +249,13 @@ export const NOVELS = [
       { name: "Nikolái Stavroguin", desc: "Carismático y enigmático, centro moral vacío de la novela" },
       { name: "Piotr Stepánovich Verjovenski", desc: "Conspirador manipulador que orquesta el caos revolucionario" },
       { name: "Stepán Trofímovich Verjovenski", desc: "Intelectual liberal de la vieja generación, padre de Piotr" },
-      { name: "Iván Shátov", desc: "Exrevolucionario que redescubre la fe rusa y es asesinado por la célula" },
-      { name: "Kirílov", desc: "Ingeniero obsesionado con probar la libertad absoluta mediante el suicidio" },
+      { name: "Iván Shátov", desc: "Exrevolucionario que redescubre la fe rusa, en conflicto con la célula" },
+      { name: "Kirílov", desc: "Ingeniero obsesionado con una idea filosófica extrema sobre la libertad absoluta" },
     ],
     relationships: [
       { from: 1, to: 0, type: "manipulacion", label: "usa como líder simbólico" },
       { from: 2, to: 1, type: "familia", label: "padre e hijo" },
-      { from: 1, to: 3, type: "rivalidad", label: "ordena asesinato" },
+      { from: 1, to: 3, type: "rivalidad", label: "ve como amenaza" },
       { from: 0, to: 3, type: "mentor", label: "influencia ideológica" },
       { from: 0, to: 4, type: "mentor", label: "influencia filosófica" },
     ],
@@ -300,11 +300,11 @@ export const NOVELS = [
     location: "Skotoprigónevsk (ciudad provinciana ficticia, Rusia)",
     writtenContext: "Última y más ambiciosa novela de Dostoievski, publicada entre 1879-1880 en El Mensajero Ruso. Planeó una segunda parte que nunca escribió: murió en enero de 1881, meses después de completarla.",
     characters: [
-      { name: "Dmitri (Mitia) Karamázov", desc: "Hermano mayor, apasionado e impulsivo, acusado de parricidio" },
+      { name: "Dmitri (Mitia) Karamázov", desc: "Hermano mayor, apasionado e impulsivo, en conflicto abierto con su padre" },
       { name: "Iván Karamázov", desc: "Hermano intelectual, ateo, autor del poema del Gran Inquisidor" },
       { name: "Alexéi (Aliosha) Karamázov", desc: "Hermano menor, novicio religioso, discípulo del stárets Zósima" },
-      { name: "Fiódor Pávlovich Karamázov", desc: "El padre, bufón lujurioso y avaro, víctima del parricidio" },
-      { name: "Smerdiákov", desc: "Medio hermano ilegítimo, cocinero epiléptico, ejecutor del crimen" },
+      { name: "Fiódor Pávlovich Karamázov", desc: "El padre, bufón lujurioso y avaro, despreciado por sus hijos" },
+      { name: "Smerdiákov", desc: "Medio hermano ilegítimo, cocinero epiléptico, figura enigmática y siniestra" },
       { name: "Stárets Zósima", desc: "Anciano monje, mentor espiritual de Aliosha" },
     ],
     relationships: [
