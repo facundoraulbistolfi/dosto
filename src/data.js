@@ -31,6 +31,10 @@ export const NOVELS = [
       { name: "Várvara Dobrosiólova", desc: "Joven huérfana y costurera, corresponsal de Makar" },
       { name: "Bykov", desc: "Terrateniente adinerado que se casa con Várara por conveniencia" },
     ],
+    relationships: [
+      { from: 0, to: 1, type: "amor-no-correspondido", label: "amor epistolar" },
+      { from: 2, to: 1, type: "manipulacion", label: "matrimonio forzado" },
+    ],
   },
   {
     id: "el-doble",
@@ -49,6 +53,11 @@ export const NOVELS = [
       { name: "Goliadkin Jr.", desc: "El doble idéntico, astuto y manipulador, que usurpa su vida" },
       { name: "Klara Olsúfievna", desc: "Hija del consejero de Estado, objeto del amor imposible de Goliadkin" },
     ],
+    relationships: [
+      { from: 0, to: 1, type: "rivalidad", label: "doble usurpador" },
+      { from: 0, to: 2, type: "amor-no-correspondido", label: "amor imposible" },
+      { from: 1, to: 2, type: "rivalidad", label: "pretende a Klara" },
+    ],
   },
   {
     id: "noches-blancas",
@@ -66,6 +75,10 @@ export const NOVELS = [
       { name: "El Soñador", desc: "Narrador anónimo, joven solitario e idealista que vive en sus fantasías" },
       { name: "Nástenka", desc: "Joven vivaz que espera el regreso de su amado junto al canal" },
       { name: "El inquilino", desc: "Amado ausente de Nástenka que regresa al final" },
+    ],
+    relationships: [
+      { from: 0, to: 1, type: "amor-no-correspondido", label: "se enamora de" },
+      { from: 1, to: 2, type: "amor", label: "amado ausente" },
     ],
   },
   {
@@ -87,6 +100,13 @@ export const NOVELS = [
       { name: "Aliosha (Alexéi)", desc: "Hijo del príncipe, ingenuo y voluble en sus afectos" },
       { name: "Nelly", desc: "Niña huérfana y enferma, víctima de la crueldad de Valkovski" },
     ],
+    relationships: [
+      { from: 0, to: 1, type: "amor-no-correspondido", label: "enamorado de" },
+      { from: 1, to: 3, type: "amor", label: "abandona familia por" },
+      { from: 2, to: 3, type: "familia", label: "padre e hijo" },
+      { from: 2, to: 4, type: "manipulacion", label: "victimario" },
+      { from: 2, to: 1, type: "manipulacion", label: "intenta separar" },
+    ],
   },
   {
     id: "memorias-del-subsuelo",
@@ -104,6 +124,10 @@ export const NOVELS = [
       { name: "El Hombre del Subsuelo", desc: "Narrador anónimo, exfuncionario amargado y contradictorio de 40 años" },
       { name: "Liza", desc: "Joven prostituta a quien el narrador intenta redimir y luego humilla" },
       { name: "Zvérkov", desc: "Antiguo compañero de escuela, exitoso y arrogante, objeto de la envidia del narrador" },
+    ],
+    relationships: [
+      { from: 0, to: 1, type: "manipulacion", label: "humilla e intenta redimir" },
+      { from: 0, to: 2, type: "rivalidad", label: "envidia y resentimiento" },
     ],
   },
   {
@@ -125,6 +149,13 @@ export const NOVELS = [
       { name: "Dunia Raskólnikova", desc: "Hermana de Rodión, fuerte e independiente" },
       { name: "Svidrigáilov", desc: "Terrateniente corrupto y nihilista obsesionado con Dunia" },
     ],
+    relationships: [
+      { from: 0, to: 1, type: "amor", label: "redención mutua" },
+      { from: 0, to: 3, type: "familia", label: "hermanos" },
+      { from: 2, to: 0, type: "investigacion", label: "investiga" },
+      { from: 4, to: 3, type: "amor-no-correspondido", label: "obsesión" },
+      { from: 4, to: 0, type: "rivalidad", label: "doble oscuro" },
+    ],
   },
   {
     id: "el-jugador",
@@ -144,6 +175,12 @@ export const NOVELS = [
       { name: "El General", desc: "Militar retirado endeudado que espera la herencia de su tía" },
       { name: "La Abuelita (Antonida Vasílievna)", desc: "Anciana rica que llega al casino y pierde una fortuna en la ruleta" },
       { name: "Mr. Astley", desc: "Inglés reservado y honorable, enamorado en secreto de Polina" },
+    ],
+    relationships: [
+      { from: 0, to: 1, type: "amor-no-correspondido", label: "enamorado de" },
+      { from: 2, to: 1, type: "familia", label: "padrastro" },
+      { from: 2, to: 3, type: "familia", label: "espera herencia" },
+      { from: 4, to: 1, type: "amor-no-correspondido", label: "amor secreto" },
     ],
   },
   {
@@ -165,6 +202,13 @@ export const NOVELS = [
       { name: "Aglaya Yepánchina", desc: "Joven inteligente y orgullosa, enamorada del príncipe" },
       { name: "Gania Ivolguin", desc: "Secretario ambicioso que busca casarse por dinero" },
     ],
+    relationships: [
+      { from: 0, to: 1, type: "amor", label: "compasión y amor" },
+      { from: 0, to: 3, type: "amor", label: "amor puro" },
+      { from: 2, to: 1, type: "amor", label: "obsesión posesiva" },
+      { from: 2, to: 0, type: "rivalidad", label: "rival y hermano jurado" },
+      { from: 4, to: 1, type: "manipulacion", label: "pretende por dinero" },
+    ],
   },
   {
     id: "el-eterno-marido",
@@ -182,6 +226,11 @@ export const NOVELS = [
       { name: "Pável Pávlovich Trúsotski", desc: "Viudo sumiso que busca al amante de su difunta esposa" },
       { name: "Alexéi Ivánovich Velchanínov", desc: "Ex amante elegante y ocioso, atormentado por la culpa" },
       { name: "Liza", desc: "Hija de la difunta esposa, posiblemente hija biológica de Velchanínov" },
+    ],
+    relationships: [
+      { from: 0, to: 1, type: "rivalidad", label: "busca al amante" },
+      { from: 1, to: 2, type: "familia", label: "posible padre" },
+      { from: 0, to: 2, type: "familia", label: "padre legal" },
     ],
   },
   {
@@ -203,6 +252,13 @@ export const NOVELS = [
       { name: "Iván Shátov", desc: "Exrevolucionario que redescubre la fe rusa y es asesinado por la célula" },
       { name: "Kirílov", desc: "Ingeniero obsesionado con probar la libertad absoluta mediante el suicidio" },
     ],
+    relationships: [
+      { from: 1, to: 0, type: "manipulacion", label: "usa como líder simbólico" },
+      { from: 2, to: 1, type: "familia", label: "padre e hijo" },
+      { from: 1, to: 3, type: "rivalidad", label: "ordena asesinato" },
+      { from: 0, to: 3, type: "mentor", label: "influencia ideológica" },
+      { from: 0, to: 4, type: "mentor", label: "influencia filosófica" },
+    ],
   },
   {
     id: "el-adolescente",
@@ -222,6 +278,13 @@ export const NOVELS = [
       { name: "Sofía Andréievna (Mamá)", desc: "Madre humilde de Arkadi, devota de Versílov" },
       { name: "Katerina Nikoláievna Ajmákova", desc: "Mujer aristocrática de quien Versílov y Arkadi se enamoran" },
       { name: "Makar Ivánovich Dolgoruki", desc: "Marido legal de Sofía, peregrino religioso, figura espiritual" },
+    ],
+    relationships: [
+      { from: 0, to: 1, type: "familia", label: "hijo ilegítimo" },
+      { from: 1, to: 2, type: "amor", label: "relación compleja" },
+      { from: 2, to: 4, type: "familia", label: "esposa legal" },
+      { from: 1, to: 3, type: "amor-no-correspondido", label: "enamorado de" },
+      { from: 0, to: 3, type: "amor-no-correspondido", label: "fascinado por" },
     ],
   },
   {
@@ -243,6 +306,15 @@ export const NOVELS = [
       { name: "Fiódor Pávlovich Karamázov", desc: "El padre, bufón lujurioso y avaro, víctima del parricidio" },
       { name: "Smerdiákov", desc: "Medio hermano ilegítimo, cocinero epiléptico, ejecutor del crimen" },
       { name: "Stárets Zósima", desc: "Anciano monje, mentor espiritual de Aliosha" },
+    ],
+    relationships: [
+      { from: 0, to: 3, type: "familia", label: "padre e hijo" },
+      { from: 1, to: 3, type: "familia", label: "padre e hijo" },
+      { from: 2, to: 3, type: "familia", label: "padre e hijo" },
+      { from: 4, to: 3, type: "familia", label: "hijo ilegítimo" },
+      { from: 4, to: 1, type: "manipulacion", label: "influenciado por" },
+      { from: 2, to: 5, type: "mentor", label: "discípulo" },
+      { from: 0, to: 1, type: "rivalidad", label: "conflicto fraterno" },
     ],
   },
 ];
