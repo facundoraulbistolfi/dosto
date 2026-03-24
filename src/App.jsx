@@ -40,6 +40,17 @@ export default function App() {
     setLoaded(true);
   }, []);
 
+  const filtered = NOVELS.filter(
+    (n) => (!searchQuery || n.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      && (activeThemes.size === 0 || n.themes.some((t) => activeThemes.has(t)))
+  ).sort((a, b) =>
+    sortBy === "year"
+      ? a.year - b.year
+      : sortBy === "pages"
+      ? a.pages - b.pages
+      : a.title.localeCompare(b.title)
+  );
+
   useEffect(() => {
     if (!selectedBook) return;
     document.body.style.overflow = "hidden";
@@ -185,17 +196,6 @@ export default function App() {
       return next;
     });
   };
-
-  const filtered = NOVELS.filter(
-    (n) => (!searchQuery || n.title.toLowerCase().includes(searchQuery.toLowerCase()))
-      && (activeThemes.size === 0 || n.themes.some((t) => activeThemes.has(t)))
-  ).sort((a, b) =>
-    sortBy === "year"
-      ? a.year - b.year
-      : sortBy === "pages"
-      ? a.pages - b.pages
-      : a.title.localeCompare(b.title)
-  );
 
   const getProportionalPages = (novel) => {
     const ch = getChapter(novel.id);
