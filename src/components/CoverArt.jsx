@@ -2,8 +2,10 @@ import { memo, useState } from "react";
 import { COLORS } from "../theme.js";
 import fallbackCovers from "../assets/covers/fallback/index.js";
 
+const MAIN_EXTS = ["jpg", "jpeg", "png", "webp", "svg"];
+
 const CoverArt = ({ type, isRead, status, title }) => {
-  const [useMain, setUseMain] = useState(true);
+  const [extIndex, setExtIndex] = useState(0);
 
   const effectiveStatus = status || (isRead ? "terminado" : "no-leido");
   const isTerminado = effectiveStatus === "terminado";
@@ -16,13 +18,13 @@ const CoverArt = ({ type, isRead, status, title }) => {
   const label = title ? `Portada de ${title}` : "Portada de novela";
   const base = import.meta.env.BASE_URL;
 
-  if (useMain) {
+  if (extIndex < MAIN_EXTS.length) {
     return (
       <div role="img" aria-label={label} style={{ width: "100%", height: "100%" }}>
         <img
-          src={`${base}covers/${type}.jpg`}
+          src={`${base}covers/${type}.${MAIN_EXTS[extIndex]}`}
           alt={label}
-          onError={() => setUseMain(false)}
+          onError={() => setExtIndex((i) => i + 1)}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>
