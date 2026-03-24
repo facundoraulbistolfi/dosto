@@ -4,6 +4,7 @@ import { COLORS } from "./theme.js";
 import CoverArt from "./components/CoverArt.jsx";
 import StatsBar from "./components/StatsBar.jsx";
 import RelationshipDiagram from "./components/RelationshipDiagram.jsx";
+import Timeline from "./components/Timeline.jsx";
 
 const STORAGE_KEY = "dostoevsky-read";
 
@@ -14,6 +15,9 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [sortBy, setSortBy] = useState("year");
   const [searchQuery, setSearchQuery] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   useEffect(() => {
     try {
@@ -39,13 +43,21 @@ export default function App() {
   useEffect(() => {
     if (!selectedBook) return;
     document.body.style.overflow = "hidden";
-    const handler = (e) => { if (e.key === "Escape") setSelectedBook(null); };
+    const handler = (e) => {
+      if (e.key === "Escape") setSelectedBook(null);
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const idx = filtered.findIndex((n) => n.id === selectedBook.id);
+        if (idx === -1) return;
+        const next = e.key === "ArrowLeft" ? idx - 1 : idx + 1;
+        if (next >= 0 && next < filtered.length) setSelectedBook(filtered[next]);
+      }
+    };
     document.addEventListener("keydown", handler);
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", handler);
     };
-  }, [selectedBook]);
+  }, [selectedBook, filtered]);
 
   const saveStates = useCallback((states) => {
     try {
@@ -66,13 +78,102 @@ export default function App() {
       if (status === "no-leido") {
         delete next[id];
       } else {
-        next[id] = { status };
-        if (status === "en-progreso" && chapter != null) {
-          next[id].chapter = chapter;
+        const existing = prev[id] || {};
+        next[id] = { ...existing, status };
+        if (status === "en-progreso") {
+          if (chapter != null) next[id].chapter = chapter;
+          if (!existing.startedDate) next[id].startedDate = new Date().toISOString();
+        }
+        if (status === "terminado") {
+          if (!existing.startedDate) next[id].startedDate = new Date().toISOString();
+          next[id].finishedDate = new Date().toISOString();
         }
       }
       saveStates(next);
       return next;
+    });
+  };
+
+  const addNote = (id, text) => {
+    if (!text.trim()) return;
+    setBookStates((prev) => {
+      const next = { ...prev };
+      const existing = prev[id] || { status: "no-leido" };
+      const notes = existing.notes ? [...existing.notes] : [];
+      notes.push({ text: text.trim(), date: new Date().toISOString() });
+      next[id] = { ...existing, notes };
+      saveStates(next);
+      return next;
+    });
+  };
+
+  const deleteNote = (id, noteIndex) => {
+    setBookStates((prev) => {
+      const next = { ...prev };
+      const existing = prev[id];
+      if (!existing?.notes) return prev;
+      const notes = existing.notes.filter((_, i) => i !== noteIndex);
+      next[id] = { ...existing, notes };
+      saveStates(next);
+      return next;
+    });
+  };
+
+  const exportData = () => {
+    const blob = new Blob([JSON.stringify(bookStates, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dosto-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (typeof data !== "object" || Array.isArray(data)) return;
+          const validIds = new Set(NOVELS.map((n) => n.id));
+          const cleaned = {};
+          for (const [key, val] of Object.entries(data)) {
+            if (validIds.has(key) && val?.status) cleaned[key] = val;
+          }
+          setBookStates(cleaned);
+          saveStates(cleaned);
+        } catch {
+          // invalid file
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const copyShareSummary = () => {
+    const finished = NOVELS.filter((n) => isFinished(n.id));
+    const inProg = NOVELS.filter((n) => isInProgress(n.id));
+    const pct = totalPages > 0 ? Math.round((readPages / totalPages) * 100) : 0;
+    let text = `Mis lecturas de Dostoievski: ${finished.length}/${NOVELS.length} terminadas, ${inProg.length} en progreso. Páginas: ${readPages.toLocaleString()}/${totalPages.toLocaleString()} (${pct}%).`;
+    if (finished.length > 0) {
+      text += `\nTerminadas: ${finished.map((n) => n.title).join(", ")}.`;
+    }
+    if (inProg.length > 0) {
+      text += `\nLeyendo: ${inProg.map((n) => {
+        const ch = getChapter(n.id);
+        return ch ? `${n.title} (cap. ${ch}/${n.chapters})` : n.title;
+      }).join(", ")}.`;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
     });
   };
 
@@ -152,6 +253,23 @@ export default function App() {
         <div style={{ maxWidth: 700, margin: "14px auto 0" }}>
           <StatsBar read={finishedPages} inProgress={inProgressPages} total={totalPages} />
         </div>
+        <div style={{ maxWidth: 700, margin: "10px auto 0", textAlign: "center" }}>
+          <button
+            onClick={() => setShowTimeline((v) => !v)}
+            style={{
+              fontSize: 11, letterSpacing: 1, textTransform: "uppercase",
+              border: "none", background: "transparent", color: showTimeline ? COLORS.gold : COLORS.textMuted,
+              cursor: "pointer", padding: "4px 8px", fontFamily: "inherit",
+            }}
+          >
+            {showTimeline ? "▾ " : "▸ "}Línea temporal
+          </button>
+          {showTimeline && (
+            <div style={{ marginTop: 10 }}>
+              <Timeline novels={NOVELS} bookStates={bookStates} onSelectBook={(n) => { setSelectedBook(n); setNoteText(""); }} />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Search + Theme Filters */}
@@ -159,6 +277,7 @@ export default function App() {
         <div style={{ maxWidth: 400, margin: "0 auto 12px" }}>
           <input
             type="text"
+            aria-label="Buscar novelas por título"
             placeholder="Buscar por título…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -169,7 +288,7 @@ export default function App() {
             }}
           />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+        <div role="toolbar" aria-label="Filtrar por tema" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
           <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginRight: 4 }}>Filtrar:</span>
           {Object.entries(THEMES).map(([key, { label, color }]) => {
             const active = activeThemes.has(key);
@@ -204,7 +323,7 @@ export default function App() {
         </div>
 
         {/* Sort */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 10 }}>
+        <div role="toolbar" aria-label="Ordenar novelas" style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 10 }}>
           <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted }}>Ordenar:</span>
           {[
             { key: "year", label: "Año" },
@@ -241,8 +360,12 @@ export default function App() {
             <div
               key={novel.id}
               className="book-card"
+              role="button"
+              tabIndex={0}
+              aria-label={`${novel.title}, ${novel.year}, ${novel.pages} páginas, ${finished ? "terminado" : inProg ? "en progreso" : "no leído"}`}
               style={{ cursor: "pointer", transition: "transform 0.2s, opacity 0.2s, box-shadow 0.2s", opacity: finished ? 1 : inProg ? 0.9 : 0.75, animation: "fadeIn 0.3s ease" }}
-              onClick={() => setSelectedBook(novel)}
+              onClick={() => { setSelectedBook(novel); setNoteText(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedBook(novel); setNoteText(""); } }}
             >
               <div style={{
                 aspectRatio: "200/280",
@@ -323,6 +446,39 @@ export default function App() {
           <p style={{ margin: 0, fontSize: 12, color: COLORS.textMuted, fontStyle: "italic" }}>
             Hecha con Claude Code.
           </p>
+        </div>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
+          <button
+            onClick={exportData}
+            style={{
+              padding: "6px 16px", fontSize: 12, fontFamily: "inherit",
+              border: `1px solid ${COLORS.border}`, borderRadius: 6,
+              background: "transparent", color: COLORS.textSecondary, cursor: "pointer",
+            }}
+          >
+            Exportar datos
+          </button>
+          <button
+            onClick={importData}
+            style={{
+              padding: "6px 16px", fontSize: 12, fontFamily: "inherit",
+              border: `1px solid ${COLORS.border}`, borderRadius: 6,
+              background: "transparent", color: COLORS.textSecondary, cursor: "pointer",
+            }}
+          >
+            Importar datos
+          </button>
+          <button
+            onClick={copyShareSummary}
+            style={{
+              padding: "6px 16px", fontSize: 12, fontFamily: "inherit",
+              border: `1px solid ${copyFeedback ? COLORS.gold : COLORS.border}`, borderRadius: 6,
+              background: "transparent", color: copyFeedback ? COLORS.gold : COLORS.textSecondary, cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            {copyFeedback ? "Copiado" : "Compartir resumen"}
+          </button>
         </div>
       </div>
 
@@ -505,8 +661,78 @@ export default function App() {
                 })()}
               </div>
 
+              {/* Reading dates */}
+              {(bookStates[selectedBook.id]?.startedDate || bookStates[selectedBook.id]?.finishedDate) && (
+                <div style={{ display: "flex", gap: 16, marginTop: 12, fontSize: 11, color: COLORS.textSecondary }}>
+                  {bookStates[selectedBook.id]?.startedDate && (
+                    <span>Iniciado: {new Date(bookStates[selectedBook.id].startedDate).toLocaleDateString()}</span>
+                  )}
+                  {bookStates[selectedBook.id]?.finishedDate && (
+                    <span>Terminado: {new Date(bookStates[selectedBook.id].finishedDate).toLocaleDateString()}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Notes / Journal */}
+              <div style={{ margin: "20px 0 0" }}>
+                <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginBottom: 10 }}>
+                  Notas personales
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="Escribe una nota, cita o reflexión…"
+                    rows={2}
+                    style={{
+                      flex: 1, padding: "8px 12px", fontSize: 13, fontFamily: "inherit",
+                      background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 8,
+                      color: COLORS.text, resize: "vertical", outline: "none", minHeight: 40,
+                    }}
+                  />
+                  <button
+                    onClick={() => { addNote(selectedBook.id, noteText); setNoteText(""); }}
+                    disabled={!noteText.trim()}
+                    style={{
+                      padding: "8px 16px", fontSize: 12, fontFamily: "inherit",
+                      background: noteText.trim() ? COLORS.gold : COLORS.border,
+                      color: noteText.trim() ? COLORS.bgMain : COLORS.textMuted,
+                      border: "none", borderRadius: 8, cursor: noteText.trim() ? "pointer" : "default",
+                      fontWeight: 600, alignSelf: "flex-end",
+                    }}
+                  >
+                    Guardar
+                  </button>
+                </div>
+                {bookStates[selectedBook.id]?.notes?.length > 0 && (
+                  <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                    {[...bookStates[selectedBook.id].notes].reverse().map((note, i) => {
+                      const realIndex = bookStates[selectedBook.id].notes.length - 1 - i;
+                      return (
+                        <div key={i} style={{ padding: "8px 12px", background: COLORS.bgCard, borderRadius: 8, border: `1px solid ${COLORS.border}` }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                            <span style={{ fontSize: 10, color: COLORS.textMuted }}>
+                              {new Date(note.date).toLocaleDateString()} · {new Date(note.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            <button
+                              onClick={() => deleteNote(selectedBook.id, realIndex)}
+                              style={{ fontSize: 10, border: "none", background: "transparent", color: COLORS.textMuted, cursor: "pointer", padding: "2px 4px" }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <div style={{ fontSize: 13, lineHeight: 1.5, color: COLORS.textDesc, whiteSpace: "pre-wrap" }}>
+                            {note.text}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <button
-                onClick={() => setSelectedBook(null)}
+                onClick={() => { setSelectedBook(null); setNoteText(""); }}
                 style={{
                   width: "100%", padding: "10px", fontSize: 13,
                   border: "none", background: "transparent", color: COLORS.textMuted,
