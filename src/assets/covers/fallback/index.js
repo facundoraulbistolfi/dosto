@@ -10,6 +10,12 @@ import RingCover from "./ring.jsx";
 import FlameCover from "./flame.jsx";
 import MirrorCover from "./mirror.jsx";
 import BrothersCover from "./brothers.jsx";
+import QuillCover from "./quill.jsx";
+import CrownCover from "./crown.jsx";
+import MaskCover from "./mask.jsx";
+import ChainsCover from "./chains.jsx";
+import DoveCover from "./dove.jsx";
+import StarCover from "./star.jsx";
 
 const fallbackCovers = {
   letter: LetterCover,
@@ -24,6 +30,12 @@ const fallbackCovers = {
   flame: FlameCover,
   mirror: MirrorCover,
   brothers: BrothersCover,
+  quill: QuillCover,
+  crown: CrownCover,
+  mask: MaskCover,
+  chains: ChainsCover,
+  dove: DoveCover,
+  star: StarCover,
 };
 
 export default fallbackCovers;
