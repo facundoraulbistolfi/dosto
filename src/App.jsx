@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { NOVELS, THEMES } from "./data.js";
+import { NOVELS, THEMES } from "./expandedData.js";
 import { COLORS } from "./theme.js";
 import CoverArt from "./components/CoverArt.jsx";
 import StatsBar from "./components/StatsBar.jsx";
