@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { NOVELS, THEMES } from "./expandedData.js";
+import { NOVELS, THEMES, WORK_TYPES } from "./expandedData.js";
 import { COLORS } from "./theme.js";
 import CoverArt from "./components/CoverArt.jsx";
 import StatsBar from "./components/StatsBar.jsx";
@@ -11,6 +11,7 @@ const STORAGE_KEY = "dostoevsky-read";
 export default function App() {
   const [bookStates, setBookStates] = useState({});
   const [activeThemes, setActiveThemes] = useState(new Set());
+  const [activeTypes, setActiveTypes] = useState(new Set());
   const [selectedBook, setSelectedBook] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [sortBy, setSortBy] = useState("year");
@@ -43,6 +44,7 @@ export default function App() {
   const filtered = NOVELS.filter(
     (n) => (!searchQuery || n.title.toLowerCase().includes(searchQuery.toLowerCase()))
       && (activeThemes.size === 0 || n.themes.some((t) => activeThemes.has(t)))
+      && (activeTypes.size === 0 || activeTypes.has(n.type))
   ).sort((a, b) =>
     sortBy === "year"
       ? a.year - b.year
@@ -197,6 +199,15 @@ export default function App() {
     });
   };
 
+  const toggleType = (t) => {
+    setActiveTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t);
+      else next.add(t);
+      return next;
+    });
+  };
+
   const getProportionalPages = (novel) => {
     const ch = getChapter(novel.id);
     if (!ch || !novel.chapters) return 0;
@@ -288,8 +299,34 @@ export default function App() {
             }}
           />
         </div>
+        <div role="toolbar" aria-label="Filtrar por tipo" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginRight: 4 }}>Tipo:</span>
+          {Object.entries(WORK_TYPES).map(([key, { label, color }]) => {
+            const active = activeTypes.has(key);
+            const count = NOVELS.filter((n) => n.type === key).length;
+            return (
+              <button
+                key={key}
+                onClick={() => toggleType(key)}
+                aria-pressed={active}
+                style={{
+                  padding: "4px 12px",
+                  fontSize: 12,
+                  border: `1px solid ${active ? color : COLORS.border}`,
+                  borderRadius: 20,
+                  background: active ? color + "22" : "transparent",
+                  color: active ? color : COLORS.textLabel,
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                {label} ({count})
+              </button>
+            );
+          })}
+        </div>
         <div role="toolbar" aria-label="Filtrar por tema" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-          <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginRight: 4 }}>Filtrar:</span>
+          <span style={{ fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: COLORS.textMuted, marginRight: 4 }}>Tema:</span>
           {Object.entries(THEMES).map(([key, { label, color }]) => {
             const active = activeThemes.has(key);
             return (
@@ -312,9 +349,9 @@ export default function App() {
               </button>
             );
           })}
-          {(activeThemes.size > 0 || searchQuery) && (
+          {(activeThemes.size > 0 || activeTypes.size > 0 || searchQuery) && (
             <button
-              onClick={() => { setActiveThemes(new Set()); setSearchQuery(""); }}
+              onClick={() => { setActiveThemes(new Set()); setActiveTypes(new Set()); setSearchQuery(""); }}
               style={{ padding: "4px 10px", fontSize: 11, border: "none", background: "transparent", color: COLORS.gold, cursor: "pointer", textDecoration: "underline" }}
             >
               Limpiar
@@ -520,6 +557,16 @@ export default function App() {
                   </div>
                   <div style={{ fontSize: 13, color: COLORS.textBook, marginBottom: 4 }}>
                     {selectedBook.pages} páginas · {selectedBook.chapters} capítulos
+                    {selectedBook.type && WORK_TYPES[selectedBook.type] && (
+                      <span style={{
+                        marginLeft: 8, padding: "1px 8px", fontSize: 11, borderRadius: 10,
+                        background: WORK_TYPES[selectedBook.type].color + "22",
+                        color: WORK_TYPES[selectedBook.type].color,
+                        border: `1px solid ${WORK_TYPES[selectedBook.type].color}44`,
+                      }}>
+                        {WORK_TYPES[selectedBook.type].label}
+                      </span>
+                    )}
                   </div>
                   {selectedBook.location && (
                     <div style={{ fontSize: 12, color: COLORS.textSecondary, marginBottom: 12 }}>
