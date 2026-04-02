@@ -5,52 +5,52 @@ const Border = ({ dim }) => (
 const RouletteCover = ({ bg, fg, accent, dim }) => (
   <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
     <defs>
-      <radialGradient id="rouletteGlow" cx="50%" cy="48%" r="30%">
-        <stop offset="0%" stopColor={accent} stopOpacity="0.08" />
+      <radialGradient id="rouletteGlow" cx="50%" cy="48%" r="38%">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.15" />
         <stop offset="100%" stopColor={bg} stopOpacity="0" />
       </radialGradient>
     </defs>
+
     <rect width="200" height="280" fill={bg} />
     <rect width="200" height="280" fill="url(#rouletteGlow)" />
     <Border dim={dim} />
-    {/* Ruleta */}
-    <circle cx="100" cy="128" r="55" fill="none" stroke={fg} strokeWidth="1.8" />
-    <circle cx="100" cy="128" r="45" fill="none" stroke={fg} strokeWidth="0.6" opacity="0.4" />
-    <circle cx="100" cy="128" r="30" fill="none" stroke={fg} strokeWidth="0.8" opacity="0.5" />
-    <circle cx="100" cy="128" r="12" fill={dim} stroke={accent} strokeWidth="1" />
-    <circle cx="100" cy="128" r="5" fill={accent} opacity="0.8" />
-    {/* Separadores radiales */}
-    {Array.from({ length: 12 }, (_, i) => {
-      const a = (i * 30 * Math.PI) / 180;
+
+    <circle cx="100" cy="126" r="62" fill="none" stroke={fg} strokeWidth="1.8" />
+    <circle cx="100" cy="126" r="50" fill="none" stroke={fg} strokeWidth="0.8" opacity="0.46" />
+    <circle cx="100" cy="126" r="34" fill="none" stroke={fg} strokeWidth="0.9" opacity="0.54" />
+    <circle cx="100" cy="126" r="15" fill={dim} stroke={accent} strokeWidth="1.1" />
+    <circle cx="100" cy="126" r="5" fill={accent} opacity="0.85" />
+
+    {Array.from({ length: 18 }, (_, index) => {
+      const angle = (-78 + index * 20) * Math.PI / 180;
       return (
         <line
-          key={i}
-          x1={100 + 30 * Math.cos(a)}
-          y1={128 + 30 * Math.sin(a)}
-          x2={100 + 55 * Math.cos(a)}
-          y2={128 + 55 * Math.sin(a)}
-          stroke={fg}
-          strokeWidth="0.8"
-          opacity="0.5"
+          key={index}
+          x1={100 + 34 * Math.cos(angle)}
+          y1={126 + 34 * Math.sin(angle)}
+          x2={100 + 62 * Math.cos(angle)}
+          y2={126 + 62 * Math.sin(angle)}
+          stroke={index % 3 === 0 ? accent : fg}
+          strokeWidth={index % 3 === 0 ? "1" : "0.8"}
+          opacity={index % 3 === 0 ? "0.5" : "0.38"}
         />
       );
     })}
-    {/* Bolita */}
-    <circle
-      cx={100 + 48 * Math.cos(0.9)}
-      cy={128 + 48 * Math.sin(0.9)}
-      r="4"
-      fill={accent}
-      opacity="0.9"
-    />
-    {/* Fichas dispersas */}
-    <circle cx="55" cy="215" r="6" fill="none" stroke={fg} strokeWidth="1" opacity="0.5" />
-    <circle cx="55" cy="215" r="4" fill={dim} />
-    <circle cx="70" cy="220" r="6" fill="none" stroke={accent} strokeWidth="1" opacity="0.4" />
-    <circle cx="135" cy="218" r="6" fill="none" stroke={fg} strokeWidth="1" opacity="0.5" />
-    <circle cx="148" cy="212" r="6" fill="none" stroke={accent} strokeWidth="1" opacity="0.4" />
-    {/* Número 0 */}
-    <text x="100" y="132" textAnchor="middle" fontSize="8" fill={accent} opacity="0.5" fontFamily="serif">0</text>
+
+    <path d="M46,126 A54,54 0 0 1 154,126" fill="none" stroke={accent} strokeWidth="0.85" opacity="0.36" strokeDasharray="2 5" />
+    <path d="M52,126 A48,48 0 0 0 142,154" fill="none" stroke={fg} strokeWidth="0.8" opacity="0.24" />
+    <circle cx="130" cy="80" r="4.2" fill={accent} opacity="0.94" />
+    <path d="M118,86 Q126,80 130,80" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.4" />
+
+    <g opacity="0.82">
+      <circle cx="54" cy="216" r="8" fill="none" stroke={fg} strokeWidth="1.1" opacity="0.5" />
+      <circle cx="54" cy="216" r="5.2" fill={dim} opacity="0.9" />
+      <circle cx="70" cy="223" r="8" fill="none" stroke={accent} strokeWidth="1.1" opacity="0.52" />
+      <circle cx="136" cy="220" r="8" fill="none" stroke={fg} strokeWidth="1.1" opacity="0.5" />
+      <circle cx="148" cy="212" r="8" fill="none" stroke={accent} strokeWidth="1" opacity="0.46" />
+    </g>
+
+    <line x1="30" y1="236" x2="170" y2="236" stroke={dim} strokeWidth="0.8" opacity="0.34" />
   </svg>
 );
 

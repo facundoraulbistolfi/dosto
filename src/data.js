@@ -1,3 +1,5 @@
+import { BOOK_EDITORIAL } from "./data/bookEditorial.js";
+
 export const THEMES = {
   existencialismo: { label: "Existencialismo", color: "#8B5CF6" },
   redencion: { label: "Redención", color: "#F59E0B" },
@@ -21,7 +23,7 @@ export const WORK_TYPES = {
   cuento: { label: "Cuento", color: "#B0A090" },
 };
 
-export const NOVELS = [
+const BASE_NOVELS = [
   {
     id: "pobres-gentes",
     title: "Pobres gentes",
@@ -942,3 +944,14 @@ export const NOVELS = [
     ],
   },
 ];
+
+export const NOVELS = BASE_NOVELS.map((novel) => {
+  const editorial = BOOK_EDITORIAL[novel.id] || {};
+
+  return {
+    ...novel,
+    ...editorial,
+    relatedEventIds: editorial.relatedEventIds || [],
+    sources: editorial.sources || {},
+  };
+});

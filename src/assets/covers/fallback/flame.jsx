@@ -5,34 +5,35 @@ const Border = ({ dim }) => (
 const FlameCover = ({ bg, fg, accent, dim }) => (
   <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
     <defs>
-      <radialGradient id="fireGlow" cx="50%" cy="55%" r="35%">
-        <stop offset="0%" stopColor="#8B2500" stopOpacity="0.25" />
+      <radialGradient id="fireGlow" cx="50%" cy="54%" r="38%">
+        <stop offset="0%" stopColor="#a63a0c" stopOpacity="0.26" />
+        <stop offset="46%" stopColor="#742006" stopOpacity="0.1" />
         <stop offset="100%" stopColor={bg} stopOpacity="0" />
       </radialGradient>
     </defs>
+
     <rect width="200" height="280" fill={bg} />
     <rect width="200" height="280" fill="url(#fireGlow)" />
     <Border dim={dim} />
-    {/* Llama central */}
-    <path d="M100,55 Q88,80 92,108 Q97,88 100,100 Q103,88 108,108 Q112,80 100,55" fill="none" stroke={accent} strokeWidth="2" />
-    {/* Llamas laterales */}
-    <path d="M76,75 Q68,100 75,128 Q82,108 76,75" fill="none" stroke={fg} strokeWidth="1.4" opacity="0.7" />
-    <path d="M124,75 Q132,100 125,128 Q118,108 124,75" fill="none" stroke={fg} strokeWidth="1.4" opacity="0.7" />
-    <path d="M55,95 Q50,115 58,135 Q63,118 55,95" fill="none" stroke={fg} strokeWidth="1" opacity="0.4" />
-    <path d="M145,95 Q150,115 142,135 Q137,118 145,95" fill="none" stroke={fg} strokeWidth="1" opacity="0.4" />
-    {/* Silueta ciudad ardiendo */}
+
+    <path d="M100,48 Q84,80 91,112 Q98,90 100,104 Q104,88 111,112 Q118,80 100,48" fill="none" stroke={accent} strokeWidth="2.1" />
+    <path d="M84,70 Q72,102 81,136 Q91,113 84,70" fill="none" stroke={fg} strokeWidth="1.45" opacity="0.76" />
+    <path d="M116,70 Q128,102 119,136 Q109,113 116,70" fill="none" stroke={fg} strokeWidth="1.45" opacity="0.76" />
+    <path d="M61,94 Q52,118 60,142 Q68,124 61,94" fill="none" stroke={fg} strokeWidth="1.05" opacity="0.46" />
+    <path d="M139,94 Q148,118 140,142 Q132,124 139,94" fill="none" stroke={fg} strokeWidth="1.05" opacity="0.46" />
+
     <path
-      d="M20,200 L20,182 L32,182 L32,170 L44,170 L44,182 L52,182 L52,162 L58,152 L64,162 L64,178 L76,178 L76,165 L82,158 L88,165 L88,178 L96,178 L96,182 L104,182 L104,172 L110,162 L116,172 L116,182 L124,182 L124,170 L130,163 L136,170 L136,178 L148,178 L148,188 L158,188 L158,175 L164,175 L164,188 L172,188 L172,200"
+      d="M18,204 L18,182 L30,182 L30,168 L42,168 L42,182 L50,182 L50,160 L58,148 L66,160 L66,178 L74,178 L74,166 L82,156 L90,166 L90,178 L98,178 L98,186 L108,186 L108,172 L116,158 L124,172 L124,186 L132,186 L132,170 L140,160 L148,170 L148,182 L158,182 L158,190 L170,190 L170,204"
       fill="none"
       stroke={fg}
-      strokeWidth="1.2"
-      opacity="0.6"
+      strokeWidth="1.3"
+      opacity="0.66"
     />
-    {/* Chispas */}
-    {[[70,60],[85,45],[115,50],[130,65],[90,42],[110,38]].map(([x,y],i) => (
-      <circle key={i} cx={x} cy={y} r="1" fill={accent} opacity={0.3 + i * 0.05} />
+    <path d="M18,212 Q54,200 90,208 Q126,216 170,210" fill="none" stroke={dim} strokeWidth="0.85" opacity="0.32" />
+
+    {[[70, 60], [84, 44], [116, 50], [130, 64], [94, 38], [108, 34], [78, 52], [122, 58]].map(([x, y], index) => (
+      <circle key={index} cx={x} cy={y} r={index < 4 ? "1" : "0.8"} fill={accent} opacity={0.34 + index * 0.05} />
     ))}
-    <line x1="20" y1="200" x2="172" y2="200" stroke={fg} strokeWidth="1.2" opacity="0.5" />
   </svg>
 );
 
