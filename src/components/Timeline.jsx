@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
 import { COLORS, alpha } from "../theme.js";
+import { CONTEXT_EVENTS, LIFE_EVENTS } from "../data/timeline.js";
 
 const UI_FONT = "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif";
 
@@ -20,218 +21,6 @@ const TYPE_LABELS = {
   "novela-corta": "Novela corta",
   cuento: "Cuento",
 };
-
-const LIFE_EVENTS = [
-  {
-    id: "life-1821",
-    category: "life",
-    kind: "point",
-    year: 1821,
-    label: "Nacimiento en Moscú",
-    shortLabel: "Nacimiento",
-    detail: "Nace en Moscú.",
-  },
-  {
-    id: "life-1837",
-    category: "life",
-    kind: "point",
-    year: 1837,
-    label: "Muere su madre y se traslada a San Petersburgo",
-    shortLabel: "Madre / Petersburgo",
-    detail: "Comienza la etapa en la capital.",
-  },
-  {
-    id: "life-1839",
-    category: "life",
-    kind: "point",
-    year: 1839,
-    label: "Muere su padre",
-    shortLabel: "Padre",
-    detail: "Una pérdida clave en su formación.",
-  },
-  {
-    id: "life-1846",
-    category: "life",
-    kind: "point",
-    year: 1846,
-    label: "Irrumpe con Pobres gentes",
-    shortLabel: "Debut literario",
-    detail: "Belinski lo consagra como nueva voz.",
-  },
-  {
-    id: "life-1849",
-    category: "life",
-    kind: "point",
-    year: 1849,
-    label: "Arresto y falsa ejecución",
-    shortLabel: "Arresto",
-    detail: "Cae por el Círculo Petrashevski; la condena se conmuta.",
-  },
-  {
-    id: "life-omsk",
-    category: "life",
-    kind: "range",
-    year: 1850,
-    endYear: 1854,
-    row: 0,
-    label: "Presidio en Omsk",
-    shortLabel: "Omsk",
-    detail: "Cuatro años de trabajos forzados en Siberia.",
-  },
-  {
-    id: "life-semipalatinsk",
-    category: "life",
-    kind: "range",
-    year: 1854,
-    endYear: 1859,
-    row: 1,
-    label: "Servicio y destierro en Semipalátinsk",
-    shortLabel: "Semipalátinsk",
-    detail: "Servicio militar y exilio interior.",
-  },
-  {
-    id: "life-1857",
-    category: "life",
-    kind: "point",
-    year: 1857,
-    label: "Matrimonio con María Isáyeva",
-    shortLabel: "María",
-    detail: "Se casa con María Isáyeva.",
-  },
-  {
-    id: "life-1859",
-    category: "life",
-    kind: "point",
-    year: 1859,
-    label: "Regresa a San Petersburgo",
-    shortLabel: "Regreso",
-    detail: "Vuelve al centro literario ruso.",
-  },
-  {
-    id: "life-1864",
-    category: "life",
-    kind: "point",
-    year: 1864,
-    label: "Mueren María Isáyeva y Mijaíl Dostoievski",
-    shortLabel: "Doble duelo",
-    detail: "Un año decisivo de pérdidas personales.",
-  },
-  {
-    id: "life-1867",
-    category: "life",
-    kind: "point",
-    year: 1867,
-    label: "Se casa con Anna Snítkina y parte a Europa",
-    shortLabel: "Anna / Europa",
-    detail: "Comienza la larga etapa europea.",
-  },
-  {
-    id: "life-1871",
-    category: "life",
-    kind: "point",
-    year: 1871,
-    label: "Regreso definitivo a Rusia",
-    shortLabel: "Vuelta a Rusia",
-    detail: "Cierra la etapa europea.",
-  },
-  {
-    id: "life-1878",
-    category: "life",
-    kind: "point",
-    year: 1878,
-    label: "Muere su hijo Aliosha",
-    shortLabel: "Aliosha",
-    detail: "Golpe íntimo decisivo en sus últimos años.",
-  },
-  {
-    id: "life-1880",
-    category: "life",
-    kind: "point",
-    year: 1880,
-    label: "Pronuncia el discurso de Pushkin",
-    shortLabel: "Pushkin",
-    detail: "Momento máximo de consagración pública.",
-  },
-  {
-    id: "life-1881",
-    category: "life",
-    kind: "point",
-    year: 1881,
-    label: "Muerte en San Petersburgo",
-    shortLabel: "Muerte",
-    detail: "Muere en febrero de 1881.",
-  },
-];
-
-const CONTEXT_EVENTS = [
-  {
-    id: "context-1825",
-    category: "context",
-    kind: "point",
-    year: 1825,
-    label: "Revuelta decembrista",
-    shortLabel: "Decembristas",
-    detail: "Marca el clima represivo del reinado de Nicolás I.",
-  },
-  {
-    id: "context-1848",
-    category: "context",
-    kind: "point",
-    year: 1848,
-    label: "Revoluciones de 1848 y endurecimiento ruso",
-    shortLabel: "1848 europeo",
-    detail: "Aumenta la vigilancia política dentro del imperio.",
-  },
-  {
-    id: "context-crimea",
-    category: "context",
-    kind: "range",
-    year: 1853,
-    endYear: 1856,
-    row: 0,
-    label: "Guerra de Crimea",
-    shortLabel: "Crimea",
-    detail: "La derrota acelera reformas en Rusia.",
-  },
-  {
-    id: "context-1861",
-    category: "context",
-    kind: "point",
-    year: 1861,
-    label: "Emancipación de los siervos",
-    shortLabel: "Emancipación",
-    detail: "Punto central de las Grandes Reformas.",
-  },
-  {
-    id: "context-1866",
-    category: "context",
-    kind: "point",
-    year: 1866,
-    label: "Atentado contra Alejandro II y giro represivo",
-    shortLabel: "Giro represivo",
-    detail: "Se endurece el clima político tras el atentado.",
-  },
-  {
-    id: "context-russo-turkish",
-    category: "context",
-    kind: "range",
-    year: 1877,
-    endYear: 1878,
-    row: 1,
-    label: "Guerra ruso-turca",
-    shortLabel: "Ruso-turca",
-    detail: "Reaviva debates imperiales, eslavófilos y religiosos.",
-  },
-  {
-    id: "context-1881",
-    category: "context",
-    kind: "point",
-    year: 1881,
-    label: "Asesinato de Alejandro II",
-    shortLabel: "Alejandro II",
-    detail: "Cierre trágico de la era reformista.",
-  },
-];
 
 const WORK_SHORT_LABELS = {
   "Pobres gentes": "Pobres gentes",
@@ -519,7 +308,7 @@ function WorkMarker({ type, x, y, visual, active = false }) {
   );
 }
 
-function Timeline({ novels, bookStates, onSelectBook }) {
+function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [visible, setVisible] = useState({
     work: true,
@@ -568,6 +357,25 @@ function Timeline({ novels, bookStates, onSelectBook }) {
   const toggleCategory = (key) => {
     setVisible((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const handleEventActivate = (event) => {
+    onSelectEvent?.(event);
+  };
+
+  const getEventInteractionProps = (event) => ({
+    role: "button",
+    tabIndex: 0,
+    "aria-label": `${event.label}. ${formatYearRange(event.year, event.endYear)}.`,
+    onClick: () => handleEventActivate(event),
+    onKeyDown: (interactionEvent) => {
+      if (interactionEvent.key === "Enter" || interactionEvent.key === " ") {
+        interactionEvent.preventDefault();
+        handleEventActivate(event);
+      }
+    },
+    onFocus: () => setHoveredId(event.id),
+    onBlur: () => setHoveredId((current) => (current === event.id ? null : current)),
+  });
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
@@ -633,7 +441,7 @@ function Timeline({ novels, bookStates, onSelectBook }) {
         </div>
 
         <div style={{ fontSize: 12, color: COLORS.textSecondary, fontFamily: UI_FONT }}>
-          Color por categoría; en las obras, el estado de lectura aparece como señal secundaria.
+          Color por categoría; hacé hover para vista rápida y clic en vida/contexto para abrir el análisis.
         </div>
       </div>
 
@@ -730,9 +538,10 @@ function Timeline({ novels, bookStates, onSelectBook }) {
               return (
                 <g
                   key={event.id}
-                  style={{ cursor: "default" }}
+                  style={{ cursor: "pointer" }}
                   onMouseEnter={() => setHoveredId(event.id)}
                   onMouseLeave={() => setHoveredId(null)}
+                  {...getEventInteractionProps(event)}
                 >
                   <rect
                     x={x1}
@@ -778,9 +587,10 @@ function Timeline({ novels, bookStates, onSelectBook }) {
               return (
                 <g
                   key={event.id}
-                  style={{ cursor: "default" }}
+                  style={{ cursor: "pointer" }}
                   onMouseEnter={() => setHoveredId(event.id)}
                   onMouseLeave={() => setHoveredId(null)}
+                  {...getEventInteractionProps(event)}
                 >
                   <line x1={x} y1={contextAnchorY} x2={x} y2={labelY + 6} stroke={alpha(CATEGORY_META.context.color, 0.42)} strokeWidth="0.9" />
                   <polygon
@@ -871,9 +681,10 @@ function Timeline({ novels, bookStates, onSelectBook }) {
               return (
                 <g
                   key={event.id}
-                  style={{ cursor: "default" }}
+                  style={{ cursor: "pointer" }}
                   onMouseEnter={() => setHoveredId(event.id)}
                   onMouseLeave={() => setHoveredId(null)}
+                  {...getEventInteractionProps(event)}
                 >
                   <rect
                     x={x1}
@@ -919,9 +730,10 @@ function Timeline({ novels, bookStates, onSelectBook }) {
               return (
                 <g
                   key={event.id}
-                  style={{ cursor: "default" }}
+                  style={{ cursor: "pointer" }}
                   onMouseEnter={() => setHoveredId(event.id)}
                   onMouseLeave={() => setHoveredId(null)}
+                  {...getEventInteractionProps(event)}
                 >
                   <line x1={x} y1={lifeAnchorY} x2={x} y2={labelY - 10} stroke={alpha(CATEGORY_META.life.color, 0.42)} strokeWidth="0.9" />
                   <circle

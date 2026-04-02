@@ -3,11 +3,13 @@ import { NOVELS, THEMES, WORK_TYPES } from "./expandedData.js";
 import { COLORS, alpha } from "./theme.js";
 import CoverArt from "./components/CoverArt.jsx";
 import StatsBar from "./components/StatsBar.jsx";
-import RelationshipDiagram from "./components/RelationshipDiagram.jsx";
 import Timeline from "./components/Timeline.jsx";
+import BookDetailModal from "./components/BookDetailModal.jsx";
+import TimelineEventModal from "./components/TimelineEventModal.jsx";
 
 const STORAGE_KEY = "dostoevsky-read";
 const UI_FONT = "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif";
+const BOOKS_BY_ID = Object.fromEntries(NOVELS.map((novel) => [novel.id, novel]));
 
 const APP_CSS = `
   .app-shell {
@@ -282,6 +284,7 @@ export default function App() {
   const [activeThemes, setActiveThemes] = useState(new Set());
   const [activeTypes, setActiveTypes] = useState(new Set());
   const [selectedBook, setSelectedBook] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [sortBy, setSortBy] = useState("year");
   const [searchQuery, setSearchQuery] = useState("");
@@ -325,11 +328,17 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (!selectedBook) return;
+    if (!selectedBook && !selectedEvent) return;
 
     document.body.style.overflow = "hidden";
     const handler = (event) => {
-      if (event.key === "Escape") setSelectedBook(null);
+      if (event.key === "Escape") {
+        setSelectedBook(null);
+        setSelectedEvent(null);
+        setNoteText("");
+        return;
+      }
+      if (!selectedBook) return;
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         const index = filtered.findIndex((novel) => novel.id === selectedBook.id);
         if (index === -1) return;
@@ -343,7 +352,7 @@ export default function App() {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", handler);
     };
-  }, [selectedBook, filtered]);
+  }, [selectedBook, selectedEvent, filtered]);
 
   const saveStates = useCallback((states) => {
     try {
@@ -359,6 +368,7 @@ export default function App() {
   const getChapter = (id) => bookStates[id]?.chapter || null;
 
   const openBook = (novel) => {
+    setSelectedEvent(null);
     setSelectedBook(novel);
     setNoteText("");
   };
@@ -366,6 +376,16 @@ export default function App() {
   const closeBook = () => {
     setSelectedBook(null);
     setNoteText("");
+  };
+
+  const openTimelineEvent = (event) => {
+    setSelectedBook(null);
+    setSelectedEvent(event);
+    setNoteText("");
+  };
+
+  const closeTimelineEvent = () => {
+    setSelectedEvent(null);
   };
 
   const setBookStatus = (id, status, chapter = null) => {
@@ -797,7 +817,7 @@ export default function App() {
                   Un mismo eje temporal para obras, vida y contexto ruso; el color separa categorías y el estado de lectura queda como señal secundaria en las obras.
                 </div>
               </div>
-              <Timeline novels={NOVELS} bookStates={bookStates} onSelectBook={openBook} />
+              <Timeline novels={NOVELS} bookStates={bookStates} onSelectBook={openBook} onSelectEvent={openTimelineEvent} />
             </section>
           )}
 
@@ -1204,395 +1224,34 @@ export default function App() {
         </div>
       </div>
 
-      {selectedBook && (() => {
-        const status = getStatus(selectedBook.id);
-        const chapter = getChapter(selectedBook.id);
-        const selectedState = bookStates[selectedBook.id] || {};
-        const selectedType = WORK_TYPES[selectedBook.type];
-        const sliderValue = status === "terminado" ? selectedBook.chapters : status === "en-progreso" ? chapter || 1 : 0;
-        const sliderPct = selectedBook.chapters > 0 ? (sliderValue / selectedBook.chapters) * 100 : 0;
-        const activeColor = sliderValue === 0 ? COLORS.textLabel : sliderValue === selectedBook.chapters ? COLORS.gold : COLORS.inProgress;
-        const statusLabel = sliderValue === 0 ? "No leído" : sliderValue === selectedBook.chapters ? "Terminado" : "En progreso";
+      {selectedBook && (
+        <BookDetailModal
+          key={selectedBook.id}
+          book={selectedBook}
+          bookState={bookStates[selectedBook.id] || {}}
+          status={getStatus(selectedBook.id)}
+          chapter={getChapter(selectedBook.id)}
+          themes={THEMES}
+          workType={WORK_TYPES[selectedBook.type]}
+          noteText={noteText}
+          setNoteText={setNoteText}
+          setBookStatus={setBookStatus}
+          addNote={addNote}
+          deleteNote={deleteNote}
+          getBookAccent={getBookAccent}
+          actionButtonStyle={actionButtonStyle}
+          onClose={closeBook}
+        />
+      )}
 
-        return (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Detalle: ${selectedBook.title}`}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: alpha("#000000", 0.78),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 100,
-              padding: 18,
-              backdropFilter: "blur(6px)",
-            }}
-            onClick={closeBook}
-          >
-            <div
-              style={{
-                width: "min(920px, 100%)",
-                maxHeight: "92vh",
-                overflowY: "auto",
-                background:
-                  `linear-gradient(180deg, ${alpha(COLORS.text, 0.02)} 0%, transparent 26%), ${alpha(COLORS.bgModal, 0.98)}`,
-                border: `1px solid ${alpha(COLORS.border, 0.98)}`,
-                borderRadius: 28,
-                padding: "22px clamp(18px, 3vw, 30px)",
-                boxShadow: `0 28px 80px ${alpha("#000000", 0.42)}`,
-              }}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="detail-grid">
-                <div>
-                  <div
-                    style={{
-                      aspectRatio: "200 / 280",
-                      borderRadius: 14,
-                      overflow: "hidden",
-                      border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                      boxShadow: `0 20px 42px ${alpha("#000000", 0.26)}`,
-                    }}
-                  >
-                    <CoverArt type={selectedBook.cover} status={status} title={selectedBook.title} />
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 16,
-                      padding: "14px 14px 12px",
-                      borderRadius: 18,
-                      border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                      background: alpha(COLORS.bgCard, 0.84),
-                    }}
-                  >
-                    <div className="detail-section-title">Estado de lectura</div>
-                    <style>{`
-                      input[type="range"].reading-slider {
-                        -webkit-appearance: none;
-                        appearance: none;
-                        width: 100%;
-                        height: 6px;
-                        border-radius: 999px;
-                        outline: none;
-                        cursor: pointer;
-                      }
-                      input[type="range"].reading-slider::-webkit-slider-thumb {
-                        -webkit-appearance: none;
-                        appearance: none;
-                        width: 22px;
-                        height: 22px;
-                        border-radius: 50%;
-                        border: 2px solid currentColor;
-                        background: ${COLORS.bgMain};
-                        cursor: pointer;
-                        margin-top: -8px;
-                      }
-                      input[type="range"].reading-slider::-moz-range-thumb {
-                        width: 22px;
-                        height: 22px;
-                        border-radius: 50%;
-                        border: 2px solid currentColor;
-                        background: ${COLORS.bgMain};
-                        cursor: pointer;
-                      }
-                    `}</style>
-                    <input
-                      type="range"
-                      className="reading-slider"
-                      min={0}
-                      max={selectedBook.chapters}
-                      step={1}
-                      value={sliderValue}
-                      onChange={(event) => {
-                        const value = parseInt(event.target.value, 10);
-                        if (value === 0) {
-                          setBookStatus(selectedBook.id, "no-leido");
-                        } else if (value === selectedBook.chapters) {
-                          setBookStatus(selectedBook.id, "terminado");
-                        } else {
-                          setBookStatus(selectedBook.id, "en-progreso", value);
-                        }
-                      }}
-                      style={{
-                        background: `linear-gradient(to right, ${activeColor} ${sliderPct}%, ${COLORS.border} ${sliderPct}%)`,
-                        color: activeColor,
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        alignItems: "center",
-                        marginTop: 12,
-                      }}
-                    >
-                      <span style={{ fontSize: 14, color: activeColor }}>{statusLabel}</span>
-                      <span style={{ fontSize: 13, color: COLORS.textSecondary }}>
-                        {sliderValue} / {selectedBook.chapters} capítulos
-                      </span>
-                    </div>
-
-                    {(selectedState.startedDate || selectedState.finishedDate) && (
-                      <div style={{ display: "grid", gap: 6, marginTop: 12, fontSize: 12, color: COLORS.textMuted }}>
-                        {selectedState.startedDate && (
-                          <span>Iniciado: {new Date(selectedState.startedDate).toLocaleDateString()}</span>
-                        )}
-                        {selectedState.finishedDate && (
-                          <span>Terminado: {new Date(selectedState.finishedDate).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <SectionEyebrow color={getBookAccent(status)}>Ficha</SectionEyebrow>
-                  <h2 style={{ fontSize: "clamp(34px, 4vw, 42px)", lineHeight: 0.98, color: getBookAccent(status), margin: "8px 0 10px" }}>
-                    {selectedBook.title}
-                  </h2>
-                  <div style={{ fontSize: 16, color: COLORS.textSecondary, fontStyle: "italic", marginBottom: 12 }}>
-                    {selectedBook.titleOrig} · {selectedBook.year}
-                  </div>
-
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: 999,
-                        border: `1px solid ${alpha(selectedType?.color || COLORS.textSecondary, 0.4)}`,
-                        background: alpha(selectedType?.color || COLORS.textSecondary, 0.14),
-                        color: selectedType?.color || COLORS.textSecondary,
-                        fontFamily: UI_FONT,
-                        fontSize: 11,
-                      }}
-                    >
-                      {selectedType?.label}
-                    </span>
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: 999,
-                        border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                        background: alpha(COLORS.bgCard, 0.72),
-                        color: COLORS.textSecondary,
-                        fontFamily: UI_FONT,
-                        fontSize: 11,
-                      }}
-                    >
-                      {selectedBook.pages} páginas
-                    </span>
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: 999,
-                        border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                        background: alpha(COLORS.bgCard, 0.72),
-                        color: COLORS.textSecondary,
-                        fontFamily: UI_FONT,
-                        fontSize: 11,
-                      }}
-                    >
-                      {selectedBook.chapters} capítulos
-                    </span>
-                  </div>
-
-                  {selectedBook.location && (
-                    <div style={{ fontSize: 14, color: COLORS.textSecondary, marginBottom: 16 }}>
-                      Ambientación: {selectedBook.location}
-                    </div>
-                  )}
-
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-                    {selectedBook.themes.map((theme) => (
-                      <span
-                        key={theme}
-                        style={{
-                          padding: "4px 10px",
-                          borderRadius: 999,
-                          border: `1px solid ${alpha(THEMES[theme].color, 0.34)}`,
-                          background: alpha(THEMES[theme].color, 0.12),
-                          color: THEMES[theme].color,
-                          fontFamily: UI_FONT,
-                          fontSize: 11,
-                        }}
-                      >
-                        {THEMES[theme].label}
-                      </span>
-                    ))}
-                  </div>
-
-                  <p style={{ fontSize: 16, lineHeight: 1.78, color: COLORS.textDesc, margin: "0 0 20px" }}>
-                    {selectedBook.desc}
-                  </p>
-
-                  {selectedBook.writtenContext && (
-                    <div
-                      style={{
-                        marginBottom: 18,
-                        padding: "14px 16px",
-                        borderRadius: 18,
-                        background: alpha(COLORS.bgCard, 0.84),
-                        border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                      }}
-                    >
-                      <div className="detail-section-title">Contexto histórico</div>
-                      <p style={{ fontSize: 14, lineHeight: 1.7, color: COLORS.textSecondary, margin: 0, fontStyle: "italic" }}>
-                        {selectedBook.writtenContext}
-                      </p>
-                    </div>
-                  )}
-
-                  {selectedBook.characters?.length > 0 && (
-                    <div style={{ marginBottom: 18 }}>
-                      <div className="detail-section-title">Personajes principales</div>
-                      <div style={{ display: "grid", gap: 8 }}>
-                        {selectedBook.characters.map((character) => (
-                          <div key={character.name} style={{ fontSize: 14, lineHeight: 1.6 }}>
-                            <span style={{ color: COLORS.goldAccent, fontWeight: 600 }}>{character.name}</span>
-                            <span style={{ color: COLORS.textSecondary }}> — {character.desc}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedBook.relationships?.length > 0 && (
-                    <div style={{ marginBottom: 18 }}>
-                      <div className="detail-section-title">Relaciones entre personajes</div>
-                      <div
-                        style={{
-                          borderRadius: 18,
-                          border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                          background: alpha(COLORS.bgCard, 0.84),
-                          overflow: "hidden",
-                        }}
-                      >
-                        <RelationshipDiagram characters={selectedBook.characters} relationships={selectedBook.relationships} />
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ marginTop: 22 }}>
-                    <div className="detail-section-title">Notas personales</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <textarea
-                        value={noteText}
-                        onChange={(event) => setNoteText(event.target.value)}
-                        placeholder="Escribe una nota, cita o reflexión…"
-                        rows={3}
-                        style={{
-                          flex: "1 1 320px",
-                          padding: "10px 12px",
-                          fontSize: 14,
-                          fontFamily: "inherit",
-                          background: alpha(COLORS.bgCard, 0.86),
-                          border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                          borderRadius: 16,
-                          color: COLORS.text,
-                          resize: "vertical",
-                          outline: "none",
-                          minHeight: 80,
-                        }}
-                      />
-                      <button
-                        onClick={() => {
-                          addNote(selectedBook.id, noteText);
-                          setNoteText("");
-                        }}
-                        disabled={!noteText.trim()}
-                        style={{
-                          minWidth: 120,
-                          padding: "10px 16px",
-                          fontSize: 12,
-                          fontFamily: UI_FONT,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          background: noteText.trim() ? COLORS.gold : COLORS.border,
-                          color: noteText.trim() ? COLORS.bgMain : COLORS.textMuted,
-                          border: "none",
-                          borderRadius: 16,
-                          cursor: noteText.trim() ? "pointer" : "default",
-                          alignSelf: "flex-end",
-                        }}
-                      >
-                        Guardar
-                      </button>
-                    </div>
-
-                    {selectedState.notes?.length > 0 && (
-                      <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
-                        {[...selectedState.notes].reverse().map((note, index) => {
-                          const realIndex = selectedState.notes.length - 1 - index;
-                          return (
-                            <div
-                              key={index}
-                              style={{
-                                padding: "10px 12px",
-                                borderRadius: 16,
-                                background: alpha(COLORS.bgCard, 0.84),
-                                border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  gap: 12,
-                                  alignItems: "center",
-                                  marginBottom: 6,
-                                }}
-                              >
-                                <span style={{ fontSize: 11, color: COLORS.textMuted }}>
-                                  {new Date(note.date).toLocaleDateString()} ·{" "}
-                                  {new Date(note.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                </span>
-                                <button
-                                  onClick={() => deleteNote(selectedBook.id, realIndex)}
-                                  style={{
-                                    fontSize: 10,
-                                    border: "none",
-                                    background: "transparent",
-                                    color: COLORS.textMuted,
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  Eliminar
-                                </button>
-                              </div>
-                              <div style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.textDesc, whiteSpace: "pre-wrap" }}>
-                                {note.text}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={closeBook}
-                style={{
-                  ...actionButtonStyle,
-                  marginTop: 20,
-                  width: "100%",
-                  justifyContent: "center",
-                  color: COLORS.textMuted,
-                }}
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        );
-      })()}
+      {selectedEvent && (
+        <TimelineEventModal
+          event={selectedEvent}
+          booksById={BOOKS_BY_ID}
+          onOpenBook={openBook}
+          onClose={closeTimelineEvent}
+        />
+      )}
     </div>
   );
 }
