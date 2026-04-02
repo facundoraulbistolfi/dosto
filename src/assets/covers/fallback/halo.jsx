@@ -5,48 +5,52 @@ const Border = ({ dim }) => (
 const HaloCover = ({ bg, fg, accent, dim }) => (
   <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
     <defs>
-      <radialGradient id="haloGlow" cx="50%" cy="32%" r="20%">
-        <stop offset="0%" stopColor={accent} stopOpacity="0.2" />
+      <radialGradient id="haloGlow" cx="50%" cy="28%" r="30%">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.24" />
+        <stop offset="52%" stopColor={accent} stopOpacity="0.08" />
         <stop offset="100%" stopColor={bg} stopOpacity="0" />
       </radialGradient>
     </defs>
+
     <rect width="200" height="280" fill={bg} />
     <rect width="200" height="280" fill="url(#haloGlow)" />
     <Border dim={dim} />
-    {/* Aureola */}
-    <ellipse cx="100" cy="75" rx="24" ry="7" fill="none" stroke={accent} strokeWidth="2" opacity="0.9" />
-    {/* Rayos de la aureola */}
-    {Array.from({ length: 8 }, (_, i) => {
-      const a = (i * 45 * Math.PI) / 180;
+
+    <ellipse cx="100" cy="70" rx="28" ry="8" fill="none" stroke={accent} strokeWidth="2" opacity="0.92" />
+    <ellipse cx="100" cy="70" rx="34" ry="10" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.32" />
+    {Array.from({ length: 10 }, (_, index) => {
+      const angle = (index * 36) * Math.PI / 180;
       return (
         <line
-          key={i}
-          x1={100 + 28 * Math.cos(a)}
-          y1={75 + 9 * Math.sin(a)}
-          x2={100 + 36 * Math.cos(a)}
-          y2={75 + 11 * Math.sin(a)}
+          key={index}
+          x1={100 + 32 * Math.cos(angle)}
+          y1={70 + 10 * Math.sin(angle)}
+          x2={100 + 40 * Math.cos(angle)}
+          y2={70 + 12 * Math.sin(angle)}
           stroke={accent}
-          strokeWidth="0.6"
-          opacity="0.45"
+          strokeWidth="0.7"
+          opacity="0.46"
         />
       );
     })}
-    {/* Cabeza */}
-    <circle cx="100" cy="100" r="18" fill="none" stroke={fg} strokeWidth="1.8" />
-    {/* Cuerpo */}
-    <line x1="100" y1="118" x2="100" y2="185" stroke={fg} strokeWidth="2" />
-    <line x1="100" y1="138" x2="72" y2="165" stroke={fg} strokeWidth="1.8" />
-    <line x1="100" y1="138" x2="128" y2="165" stroke={fg} strokeWidth="1.8" />
-    <line x1="100" y1="185" x2="84" y2="215" stroke={fg} strokeWidth="1.8" />
-    <line x1="100" y1="185" x2="116" y2="215" stroke={fg} strokeWidth="1.8" />
-    {/* Multitud en torno */}
-    <circle cx="52" cy="165" r="6" fill="none" stroke={fg} strokeWidth="0.8" opacity="0.3" />
-    <circle cx="148" cy="160" r="6" fill="none" stroke={fg} strokeWidth="0.8" opacity="0.3" />
-    <circle cx="40" cy="150" r="5" fill="none" stroke={fg} strokeWidth="0.7" opacity="0.2" />
-    <circle cx="160" cy="148" r="5" fill="none" stroke={fg} strokeWidth="0.7" opacity="0.2" />
-    {/* Suelo de Petersburgo */}
-    <path d="M25,235 L175,235" stroke={dim} strokeWidth="1" opacity="0.4" />
-    <path d="M35,248 Q100,240 165,248" fill="none" stroke={dim} strokeWidth="0.5" opacity="0.2" />
+
+    <circle cx="100" cy="101" r="19" fill="none" stroke={fg} strokeWidth="1.8" />
+    <path d="M84,150 Q100,134 116,150" fill="none" stroke={fg} strokeWidth="1.8" />
+    <line x1="100" y1="120" x2="100" y2="190" stroke={fg} strokeWidth="2" />
+    <line x1="100" y1="142" x2="70" y2="170" stroke={fg} strokeWidth="1.8" />
+    <line x1="100" y1="142" x2="130" y2="170" stroke={fg} strokeWidth="1.8" />
+    <line x1="100" y1="190" x2="84" y2="222" stroke={fg} strokeWidth="1.8" />
+    <line x1="100" y1="190" x2="116" y2="222" stroke={fg} strokeWidth="1.8" />
+
+    {[48, 62, 138, 152].map((x, index) => (
+      <g key={x} opacity={index < 2 ? "0.26" : "0.2"}>
+        <circle cx={x} cy={index < 2 ? 166 : 160} r="6.5" fill="none" stroke={fg} strokeWidth="0.8" />
+        <line x1={x} y1={index < 2 ? 173 : 167} x2={x} y2="188" stroke={fg} strokeWidth="0.7" />
+      </g>
+    ))}
+
+    <path d="M24,232 Q100,216 176,232" fill="none" stroke={dim} strokeWidth="1" opacity="0.34" />
+    <path d="M34,244 Q100,236 166,244" fill="none" stroke={dim} strokeWidth="0.6" opacity="0.24" />
   </svg>
 );
 

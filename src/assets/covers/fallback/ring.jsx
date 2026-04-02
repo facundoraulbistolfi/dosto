@@ -4,25 +4,33 @@ const Border = ({ dim }) => (
 
 const RingCover = ({ bg, fg, accent, dim }) => (
   <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
+    <defs>
+      <radialGradient id="ringGlow" cx="50%" cy="44%" r="36%">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.16" />
+        <stop offset="100%" stopColor={bg} stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
     <rect width="200" height="280" fill={bg} />
+    <rect width="200" height="280" fill="url(#ringGlow)" />
     <Border dim={dim} />
-    {/* Anillo principal */}
-    <ellipse cx="100" cy="125" rx="38" ry="52" fill="none" stroke={fg} strokeWidth="2.5" />
-    <ellipse cx="100" cy="125" rx="32" ry="46" fill="none" stroke={fg} strokeWidth="0.5" opacity="0.3" />
-    {/* Joya en la parte superior */}
-    <ellipse cx="100" cy="88" rx="9" ry="5" fill="none" stroke={accent} strokeWidth="1.8" />
-    <ellipse cx="100" cy="88" rx="5" ry="3" fill={dim} stroke={accent} strokeWidth="0.8" />
-    {/* Grieta vertical */}
-    <path d="M88,100 L84,125 L90,148 L85,172" fill="none" stroke={accent} strokeWidth="1.2" opacity="0.7" />
-    {/* Reflejo en el anillo */}
-    <path d="M68,105 Q60,125 68,145" fill="none" stroke={accent} strokeWidth="0.6" opacity="0.3" />
-    {/* Dos figuras dentro del anillo */}
-    <circle cx="90" cy="120" r="6" fill="none" stroke={fg} strokeWidth="1" opacity="0.5" />
-    <circle cx="110" cy="130" r="6" fill="none" stroke={accent} strokeWidth="1" opacity="0.4" strokeDasharray="2,1" />
-    {/* Base con sombra */}
-    <ellipse cx="100" cy="230" rx="30" ry="6" fill={dim} opacity="0.5" />
-    <line x1="100" y1="177" x2="100" y2="224" stroke={fg} strokeWidth="2" />
-    <line x1="75" y1="224" x2="125" y2="224" stroke={fg} strokeWidth="2.5" />
+
+    <ellipse cx="100" cy="124" rx="42" ry="56" fill="none" stroke={fg} strokeWidth="2.6" />
+    <ellipse cx="100" cy="124" rx="35" ry="49" fill="none" stroke={fg} strokeWidth="0.75" opacity="0.32" />
+    <ellipse cx="100" cy="124" rx="48" ry="63" fill="none" stroke={dim} strokeWidth="0.8" strokeDasharray="3 5" opacity="0.42" />
+
+    <ellipse cx="100" cy="84" rx="10" ry="6" fill="none" stroke={accent} strokeWidth="1.8" />
+    <ellipse cx="100" cy="84" rx="5" ry="3" fill={dim} stroke={accent} strokeWidth="0.8" />
+    <path d="M92,98 L86,126 L91,150 L84,178" fill="none" stroke={accent} strokeWidth="1.2" opacity="0.74" />
+    <path d="M71,104 Q63,125 71,145" fill="none" stroke={accent} strokeWidth="0.7" opacity="0.34" />
+    <path d="M130,104 Q137,126 129,146" fill="none" stroke={accent} strokeWidth="0.6" opacity="0.18" />
+
+    <circle cx="90" cy="122" r="6.5" fill="none" stroke={fg} strokeWidth="0.95" opacity="0.56" />
+    <circle cx="111" cy="132" r="6.5" fill="none" stroke={accent} strokeWidth="0.95" opacity="0.44" strokeDasharray="2 2" />
+
+    <line x1="100" y1="182" x2="100" y2="224" stroke={fg} strokeWidth="2.2" />
+    <path d="M76,224 Q100,219 124,224" fill="none" stroke={fg} strokeWidth="2.4" />
+    <ellipse cx="100" cy="233" rx="34" ry="6" fill={dim} opacity="0.48" />
   </svg>
 );
 

@@ -5,44 +5,53 @@ const Border = ({ dim }) => (
 const MoonCover = ({ bg, fg, accent, dim }) => (
   <svg viewBox="0 0 200 280" style={{ width: "100%", height: "100%" }}>
     <defs>
-      <radialGradient id="moonGlow" cx="50%" cy="38%" r="25%">
-        <stop offset="0%" stopColor={accent} stopOpacity="0.15" />
+      <radialGradient id="moonGlow" cx="50%" cy="34%" r="34%">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.22" />
+        <stop offset="48%" stopColor={accent} stopOpacity="0.08" />
         <stop offset="100%" stopColor={bg} stopOpacity="0" />
       </radialGradient>
+      <linearGradient id="nightFade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={bg} />
+        <stop offset="100%" stopColor="#060912" />
+      </linearGradient>
+      <linearGradient id="waterGlow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.2" />
+        <stop offset="100%" stopColor={accent} stopOpacity="0" />
+      </linearGradient>
     </defs>
-    <rect width="200" height="280" fill={bg} />
+
+    <rect width="200" height="280" fill="url(#nightFade)" />
     <rect width="200" height="280" fill="url(#moonGlow)" />
     <Border dim={dim} />
-    {/* Estrellas */}
-    {[[35,45],[155,38],[170,70],[28,80],[165,110],[40,120]].map(([x,y],i) => (
-      <circle key={i} cx={x} cy={y} r="0.8" fill={accent} opacity="0.5" />
+
+    {[[28, 42], [50, 54], [145, 38], [167, 66], [42, 88], [157, 98], [128, 56], [70, 66]].map(([x, y], index) => (
+      <circle key={index} cx={x} cy={y} r={index % 2 === 0 ? "0.9" : "0.6"} fill={accent} opacity={index % 2 === 0 ? "0.55" : "0.35"} />
     ))}
-    {[[60,55],[140,62],[80,72],[130,85]].map(([x,y],i) => (
-      <circle key={i+10} cx={x} cy={y} r="0.5" fill={accent} opacity="0.35" />
+
+    <circle cx="100" cy="84" r="32" fill="none" stroke={accent} strokeWidth="1.7" />
+    <circle cx="115" cy="76" r="26" fill="url(#nightFade)" />
+    <circle cx="100" cy="84" r="40" fill="none" stroke={accent} strokeWidth="0.6" opacity="0.24" />
+
+    <path d="M26,154 Q64,132 100,152 Q137,133 174,154" fill="none" stroke={fg} strokeWidth="1.8" />
+    <path d="M26,160 Q64,139 100,160 Q137,140 174,160" fill="none" stroke={dim} strokeWidth="0.7" opacity="0.45" />
+    <line x1="26" y1="154" x2="26" y2="178" stroke={fg} strokeWidth="1.2" />
+    <line x1="174" y1="154" x2="174" y2="178" stroke={fg} strokeWidth="1.2" />
+    {[58, 78, 100, 122, 144].map((x) => (
+      <line key={x} x1={x} y1="148" x2={x} y2="172" stroke={fg} strokeWidth="0.85" opacity="0.56" />
     ))}
-    {/* Luna creciente */}
-    <circle cx="100" cy="90" r="28" fill="none" stroke={accent} strokeWidth="1.5" />
-    <circle cx="115" cy="82" r="23" fill={bg} />
-    {/* Reflejo lunar en el agua */}
-    <line x1="100" y1="165" x2="100" y2="195" stroke={accent} strokeWidth="0.8" opacity="0.4" />
-    <line x1="95" y1="170" x2="105" y2="170" stroke={accent} strokeWidth="0.5" opacity="0.3" />
-    <line x1="93" y1="178" x2="107" y2="178" stroke={accent} strokeWidth="0.5" opacity="0.25" />
-    <line x1="92" y1="186" x2="108" y2="186" stroke={accent} strokeWidth="0.5" opacity="0.2" />
-    {/* Puente del Neva */}
-    <path d="M30,155 Q65,135 100,155 Q135,135 170,155" fill="none" stroke={fg} strokeWidth="1.8" />
-    <line x1="30" y1="155" x2="30" y2="175" stroke={fg} strokeWidth="1.2" />
-    <line x1="170" y1="155" x2="170" y2="175" stroke={fg} strokeWidth="1.2" />
-    {/* Pilares del puente */}
-    <line x1="65" y1="150" x2="65" y2="168" stroke={fg} strokeWidth="1" opacity="0.6" />
-    <line x1="100" y1="155" x2="100" y2="170" stroke={fg} strokeWidth="1" opacity="0.6" />
-    <line x1="135" y1="150" x2="135" y2="168" stroke={fg} strokeWidth="1" opacity="0.6" />
-    {/* Agua ondulante */}
-    <path d="M20,175 Q50,168 80,175 Q110,182 140,175 Q160,170 180,175" fill="none" stroke={fg} strokeWidth="0.8" opacity="0.4" />
-    <path d="M20,185 Q55,178 90,185 Q120,192 155,185 Q168,181 180,185" fill="none" stroke={fg} strokeWidth="0.6" opacity="0.3" />
-    <path d="M20,195 Q60,190 100,195 Q140,200 180,195" fill="none" stroke={fg} strokeWidth="0.5" opacity="0.2" />
-    {/* Dos figuras en el puente */}
-    <circle cx="82" cy="148" r="3.5" fill={fg} opacity="0.7" />
-    <circle cx="90" cy="147" r="3.5" fill={accent} opacity="0.5" />
+
+    <path d="M18,176 Q52,168 84,176 Q118,184 152,176 Q168,172 182,176" fill="none" stroke={fg} strokeWidth="0.9" opacity="0.45" />
+    <path d="M18,188 Q48,182 82,188 Q118,194 148,188 Q164,184 182,188" fill="none" stroke={fg} strokeWidth="0.7" opacity="0.32" />
+    <path d="M18,200 Q58,194 100,200 Q142,206 182,200" fill="none" stroke={fg} strokeWidth="0.6" opacity="0.24" />
+    <rect x="89" y="144" width="22" height="70" fill="url(#waterGlow)" opacity="0.65" />
+    <line x1="100" y1="146" x2="100" y2="210" stroke={accent} strokeWidth="0.9" opacity="0.45" />
+    <line x1="93" y1="160" x2="107" y2="160" stroke={accent} strokeWidth="0.6" opacity="0.36" />
+    <line x1="91" y1="172" x2="109" y2="172" stroke={accent} strokeWidth="0.55" opacity="0.28" />
+    <line x1="90" y1="184" x2="110" y2="184" stroke={accent} strokeWidth="0.5" opacity="0.22" />
+
+    <path d="M24,224 Q70,214 120,220 Q154,224 176,220" fill="none" stroke={dim} strokeWidth="0.8" opacity="0.38" />
+    <line x1="72" y1="147" x2="72" y2="152" stroke={fg} strokeWidth="2.2" opacity="0.72" />
+    <line x1="84" y1="146" x2="84" y2="152" stroke={accent} strokeWidth="2.2" opacity="0.66" />
   </svg>
 );
 
