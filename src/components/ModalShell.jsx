@@ -14,7 +14,7 @@ function ModalShell({ ariaLabel, width = "min(920px, 100%)", onClose, children }
         alignItems: "center",
         justifyContent: "center",
         zIndex: 100,
-        padding: 18,
+        padding: "clamp(10px, 2.5vw, 18px)",
         backdropFilter: "blur(6px)",
       }}
       onClick={onClose}
@@ -22,14 +22,15 @@ function ModalShell({ ariaLabel, width = "min(920px, 100%)", onClose, children }
       <div
         style={{
           width,
-          maxHeight: "92vh",
+          maxWidth: "calc(100vw - 20px)",
+          maxHeight: "calc(100vh - 20px)",
           overflowY: "auto",
           background:
-            `linear-gradient(180deg, ${alpha(COLORS.text, 0.02)} 0%, transparent 26%), ${alpha(COLORS.bgModal, 0.98)}`,
+            `radial-gradient(circle at top, ${alpha(COLORS.goldAccent, 0.08)} 0%, transparent 24%), linear-gradient(180deg, ${alpha(COLORS.text, 0.02)} 0%, transparent 26%), ${alpha(COLORS.bgModal, 0.985)}`,
           border: `1px solid ${alpha(COLORS.border, 0.98)}`,
-          borderRadius: 28,
+          borderRadius: "clamp(20px, 4vw, 28px)",
           padding: "22px clamp(18px, 3vw, 30px)",
-          boxShadow: `0 28px 80px ${alpha("#000000", 0.42)}`,
+          boxShadow: `0 34px 90px ${alpha("#000000", 0.52)}, inset 0 1px 0 ${alpha(COLORS.text, 0.04)}`,
         }}
         onClick={(event) => event.stopPropagation()}
       >

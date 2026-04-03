@@ -1,20 +1,20 @@
 import { BOOK_EDITORIAL } from "./data/bookEditorial.js";
 
 export const THEMES = {
-  existencialismo: { label: "Existencialismo", color: "#8B5CF6" },
-  redencion: { label: "Redención", color: "#F59E0B" },
-  fe: { label: "Fe y moralidad", color: "#3B82F6" },
-  amor: { label: "Amor", color: "#EC4899" },
-  sociedad: { label: "Sociedad", color: "#10B981" },
-  psicologia: { label: "Psicología", color: "#EF4444" },
-  politica: { label: "Política", color: "#6366F1" },
-  familia: { label: "Familia", color: "#F97316" },
-  identidad: { label: "Identidad", color: "#14B8A6" },
-  crimen: { label: "Crimen", color: "#DC2626" },
-  soledad: { label: "Soledad", color: "#6B7280" },
-  adiccion: { label: "Adicción", color: "#A855F7" },
-  encierro: { label: "Encierro", color: "#78716C" },
-  utopia: { label: "Utopía", color: "#22D3EE" },
+  existencialismo: { label: "Existencialismo", color: "#9d7a4a" },
+  redencion: { label: "Redención", color: "#d2a452" },
+  fe: { label: "Fe y moralidad", color: "#7e94b5" },
+  amor: { label: "Amor", color: "#aa6b63" },
+  sociedad: { label: "Sociedad", color: "#6f8970" },
+  psicologia: { label: "Psicología", color: "#a85f57" },
+  politica: { label: "Política", color: "#756b8d" },
+  familia: { label: "Familia", color: "#b07d53" },
+  identidad: { label: "Identidad", color: "#618983" },
+  crimen: { label: "Crimen", color: "#9b4f46" },
+  soledad: { label: "Soledad", color: "#766d66" },
+  adiccion: { label: "Adicción", color: "#7b618a" },
+  encierro: { label: "Encierro", color: "#605b68" },
+  utopia: { label: "Utopía", color: "#7ca59f" },
 };
 
 export const WORK_TYPES = {
@@ -945,13 +945,38 @@ const BASE_NOVELS = [
   },
 ];
 
+function normalizeAfterReading(afterReading) {
+  if (Array.isArray(afterReading)) {
+    return afterReading.map((item) => item?.trim()).filter(Boolean);
+  }
+
+  if (typeof afterReading !== "string") return [];
+
+  const sentences = afterReading
+    .split(/(?<=[.!?])\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (sentences.length <= 2) return sentences;
+
+  return [sentences.slice(0, -1).join(" "), sentences[sentences.length - 1]];
+}
+
 export const NOVELS = BASE_NOVELS.map((novel) => {
   const editorial = BOOK_EDITORIAL[novel.id] || {};
 
   return {
     ...novel,
     ...editorial,
+    afterReading: normalizeAfterReading(editorial.afterReading),
     relatedEventIds: editorial.relatedEventIds || [],
+    relatedWorks: editorial.relatedWorks || [],
+    motifs: editorial.motifs || [],
+    publicationNote: editorial.publicationNote || "",
+    readingDifficulty: editorial.readingDifficulty || null,
+    narrativeFrame: editorial.narrativeFrame || null,
+    legacy: editorial.legacy || "",
+    referenceMaterial: editorial.referenceMaterial || null,
     sources: editorial.sources || {},
   };
 });

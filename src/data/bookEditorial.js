@@ -1,3 +1,6 @@
+import crimeAndPunishmentCover from "../assets/crimen.jpeg";
+import manuscriptDraft from "../assets/Bkdraft.jpg";
+
 const source = (label, url, publisher, kind) => ({ label, url, publisher, kind });
 
 const AUTHOR_BIO = source(
@@ -71,6 +74,10 @@ function archiveSearch(title) {
   );
 }
 
+function goodreadsSearchUrl(title) {
+  return `https://www.goodreads.com/search?q=${encodeURIComponent(`Fyodor Dostoevsky ${title}`)}`;
+}
+
 function dedupeSources(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -98,6 +105,7 @@ function createBookEditorial({
 
   return {
     ...(writtenContext ? { writtenContext } : {}),
+    goodreadsUrl: goodreadsSearchUrl(title),
     readingGuide,
     whyItMatters,
     keyQuestions,
@@ -115,7 +123,582 @@ function createBookEditorial({
   };
 }
 
-export const BOOK_EDITORIAL = {
+const BOOK_EDITORIAL_ENRICHMENTS = {
+  "pobres-gentes": {
+    publicationNote: "Debut editorial de 1846 en el Almanaque de Petersburgo, convertido enseguida en acontecimiento literario.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Es una muy buena puerta de entrada: breve, clara en superficie y ya cargada de compasión y humillación social.",
+    },
+    narrativeFrame: {
+      label: "epistolar",
+      note: "Todo pasa por cartas cruzadas, así que la emoción entra filtrada por cómo cada voz quiere ser leída.",
+    },
+    motifs: ["cartas", "dignidad herida", "pobreza urbana", "dependencia afectiva"],
+    legacy:
+      "Fija el descubrimiento inicial de Dostoievski: la pobreza no sólo lastima el cuerpo, también deforma la voz, el orgullo y la manera de amar.",
+    relatedWorks: ["humillados-y-ofendidos", "un-ladron-honrado"],
+    afterReading: [
+      "El fracaso amoroso no cierra un romance: muestra cómo el afecto puede quedar convertido en dependencia y pérdida de autonomía.",
+      "Makar termina revelando que la compasión dostoievskiana nunca es pura; siempre roza la humillación y la necesidad de ser necesitado.",
+    ],
+  },
+  "el-doble": {
+    publicationNote: "Publicado en 1846 poco después de Pobres gentes, con una recepción fría que el propio autor nunca dejó de discutir.",
+    readingDifficulty: {
+      level: "densa",
+      note: "Exige aceptar la confusión y no pedir una línea realista estable desde el primer capítulo.",
+    },
+    narrativeFrame: {
+      label: "relato paranoico",
+      note: "La novela avanza como una persecución mental donde la percepción del protagonista organiza el mundo entero.",
+    },
+    motifs: ["doble", "oficina", "vergüenza social", "desintegración del yo"],
+    legacy:
+      "Es uno de los primeros grandes laboratorios del yo escindido y anticipa la novela moderna de conciencia fracturada.",
+    relatedWorks: ["memorias-del-subsuelo", "el-adolescente"],
+    afterReading: [
+      "El doble funciona menos como monstruo fantástico que como la versión socialmente eficaz del yo que Goliadkin no puede sostener.",
+      "La novela deja la idea de que el juicio ajeno puede instalarse tan adentro que termina hablándonos con otra cara.",
+    ],
+  },
+  "el-senor-projarchin": {
+    publicationNote: "Cuento de 1846 aparecido en Otéchestvennye Zapiski, todavía dentro del primer ciclo petersburgués.",
+    readingDifficulty: {
+      level: "media",
+      note: "Se lee rápido, pero gana si se la mira como grotesco social y no sólo como anécdota de avaricia.",
+    },
+    narrativeFrame: {
+      label: "grotesco de pensión",
+      note: "La mirada colectiva de la pensión convierte al personaje en rumor, espectáculo y síntoma social.",
+    },
+    motifs: ["colchón", "avaricia", "miedo al desamparo", "miseria moral"],
+    legacy:
+      "Prepara la mezcla dostoievskiana de compasión y deformación cómica para retratar al hombre pequeño.",
+    relatedWorks: ["pobres-gentes", "un-corazon-debil"],
+    afterReading: [
+      "El dinero escondido no explica a Projarchin: vuelve más inquietante la distancia entre necesidad real y obsesión interior.",
+      "El cuento sugiere que la pobreza extrema puede transformar la autoconservación en teatro enfermizo.",
+    ],
+  },
+  "novela-en-nueve-cartas": {
+    publicationNote: "Breve pieza de 1847 aparecida en Sovremennik, en un registro más satírico que solemne.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Es breve, filosa y muy accesible, ideal para ver el costado cómico de Dostoievski.",
+    },
+    narrativeFrame: {
+      label: "comedia epistolar",
+      note: "El relato existe en cartas que convierten la cortesía en máscara, demora y maniobra.",
+    },
+    motifs: ["halagos", "estafa", "simetría", "hipocresía social"],
+    legacy:
+      "Recuerda que la polifonía dostoievskiana no nació sólo del drama filosófico: también del oído para la farsa verbal.",
+    relatedWorks: ["pobres-gentes", "la-mujer-de-otro"],
+    afterReading: [
+      "La simetría entre ambos corresponsales vuelve el fraude una condición del vínculo y no un accidente de la trama.",
+      "El cuento deja ver que para Dostoievski la palabra social ya puede nacer corrompida antes del acto visible.",
+    ],
+  },
+  "la-patrona": {
+    publicationNote: "Publicada en 1847 en dos partes, dentro de un momento de experimentación todavía inestable.",
+    readingDifficulty: {
+      level: "densa",
+      note: "Pide entrar por la atmósfera y tolerar un registro alucinado que mezcla obsesión, deseo y dominio.",
+    },
+    narrativeFrame: {
+      label: "gótico psicológico",
+      note: "Realismo urbano, sueño y fascinación erótica se superponen sin quedar del todo fijados.",
+    },
+    motifs: ["habitación", "hipnosis", "obsesión", "cautiverio"],
+    legacy:
+      "Es una obra de laboratorio donde ya aparecen el dominio espiritual, la fascinación erótica y la conciencia sitiada del Dostoievski maduro.",
+    relatedWorks: ["el-idiota", "una-criatura-docil"],
+  },
+  "noches-blancas": {
+    publicationNote: "Texto de 1848, escrito poco antes del arresto y pegado a la sensibilidad sentimental del primer período.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Su superficie es clara y emotiva, pero sostiene muy bien una segunda lectura sobre fantasía e irrealidad afectiva.",
+    },
+    narrativeFrame: {
+      label: "confesión lírica",
+      note: "La ciudad, las noches blancas y la voz del soñador suspenden el tiempo ordinario y vuelven el encuentro casi irreal.",
+    },
+    motifs: ["canales", "espera", "sueño amoroso", "ciudad nocturna"],
+    legacy:
+      "Quedó como la miniatura lírica más célebre del primer Dostoievski y como retrato ejemplar de la vida soñada.",
+    relatedWorks: ["un-pequeno-heroe", "el-sueno-de-un-hombre-ridiculo"],
+  },
+  "la-mujer-de-otro": {
+    publicationNote: "Publicado en 1848 y reunido después como una sola pieza cómica de vodevil.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Ligero y físico en apariencia, pero muy útil para ver cómo Dostoievski trabaja el ridículo social.",
+    },
+    narrativeFrame: {
+      label: "farsa de celos",
+      note: "El relato se mueve por persecuciones, equívocos y cuerpos desacomodados más que por introspección.",
+    },
+    motifs: ["celos", "cama", "ridículo", "honor masculino"],
+    legacy:
+      "Hace visible una veta cómica fundamental: el ser humano queda al desnudo cuando pierde toda dignidad escénica.",
+    relatedWorks: ["el-sueno-del-tio", "una-historia-desagradable"],
+  },
+  "un-corazon-debil": {
+    publicationNote: "Cuento de 1848 en Otéchestvennye Zapiski, dentro del ciclo del hombre pequeño petersburgués.",
+    readingDifficulty: {
+      level: "media",
+      note: "Breve y directa, pero emocionalmente intensa porque convierte la bondad misma en factor de derrumbe.",
+    },
+    narrativeFrame: {
+      label: "tragedia íntima",
+      note: "La caída psicológica se sigue desde un círculo doméstico estrecho donde trabajo, amor y culpa se aprietan entre sí.",
+    },
+    motifs: ["gratitud", "trabajo", "fragilidad nerviosa", "felicidad insoportable"],
+    legacy:
+      "Anticipa varias conciencias dostoievskianas incapaces de sostener el bien que reciben sin convertirlo en culpa.",
+    relatedWorks: ["pobres-gentes", "memorias-del-subsuelo"],
+  },
+  polzunkov: {
+    publicationNote: "Publicado en 1848 como pieza breve de humillación exhibida y autoescenificada.",
+    readingDifficulty: {
+      level: "media",
+      note: "Funciona mejor si se lo lee como estudio de voz y exhibicionismo, no sólo como anécdota degradante.",
+    },
+    narrativeFrame: {
+      label: "monólogo bufonesco",
+      note: "El protagonista narra su propia desgracia convirtiéndola en performance para otros.",
+    },
+    motifs: ["bufón", "autoexposición", "risa ajena", "vergüenza"],
+    legacy:
+      "Es un borrador precioso del bufón dostoievskiano, figura que después explotará en registros más oscuros y complejos.",
+    relatedWorks: ["bobok", "los-hermanos-karamazov"],
+  },
+  "un-ladron-honrado": {
+    publicationNote: "Relato de 1848 donde la miniatura moral empieza a pesar más que la peripecia.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Muy accesible y eficaz para entrar al costado compasivo de Dostoievski sin pasar por novelas largas.",
+    },
+    narrativeFrame: {
+      label: "relato de compasión",
+      note: "La historia importa porque alguien decide mirar a un hombre caído sin reducirlo a su delito.",
+    },
+    motifs: ["borrachera", "alojamiento", "vergüenza", "arrepentimiento"],
+    legacy:
+      "Resume en miniatura una ética clave del autor: la dignidad puede sobrevivir incluso dentro de la caída más pobre y ridícula.",
+    relatedWorks: ["pobres-gentes", "memorias-de-la-casa-muerta"],
+    afterReading: [
+      "El adjetivo del título termina desplazándose del acto a la conciencia: la honestidad aparece en la vergüenza de haber caído.",
+      "Dostoievski no absuelve el robo, pero insiste en que la mirada moral se empobrece cuando sólo ve al ladrón y no al hombre.",
+    ],
+  },
+  "el-arbol-de-navidad-y-la-boda": {
+    publicationNote: "Cuento de 1848 armado como sátira social muy concentrada y de efecto retardado.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Se lee de un tirón y pega fuerte porque comprime crueldad de clase y cálculo matrimonial en muy pocas páginas.",
+    },
+    narrativeFrame: {
+      label: "sátira de salón",
+      note: "Una escena social aparentemente menor se vuelve acusación cuando el tiempo revela lo que ya estaba en juego.",
+    },
+    motifs: ["árbol de navidad", "matrimonio", "dinero", "infancia cosificada"],
+    legacy:
+      "Es una de las piezas más feroces del primer período y muestra cuánto puede hacer Dostoievski con una escena mínima bien observada.",
+    relatedWorks: ["humillados-y-ofendidos", "el-nino-en-el-arbol-de-navidad"],
+    afterReading: [
+      "El salto temporal vuelve visible que la violencia social no necesita escándalo: puede presentarse como buena educación y arreglo conveniente.",
+      "El cuento acusa un orden que convierte a la infancia en valor de cambio sin abandonar nunca el decoro.",
+    ],
+  },
+  "netochka-nezvanova": {
+    publicationNote: "Novela inconclusa de 1849 interrumpida por el arresto, publicada de forma fragmentaria.",
+    readingDifficulty: {
+      level: "media",
+      note: "Su forma abierta exige leerla como promesa interrumpida más que como desarrollo concluido.",
+    },
+    narrativeFrame: {
+      label: "novela de formación truncada",
+      note: "La infancia, la orfandad y el arte organizan una memoria de crecimiento que nunca llega a cerrarse.",
+    },
+    motifs: ["orfandad", "música", "casa hostil", "formación"],
+    legacy:
+      "Es la gran promesa interrumpida del primer Dostoievski y un testimonio directo de cómo la historia del autor cortó una posible línea de desarrollo.",
+    relatedWorks: ["humillados-y-ofendidos", "el-adolescente"],
+  },
+  "un-pequeno-heroe": {
+    publicationNote: "Escrito en el contexto del encierro y publicado después, con un peso biográfico singular dentro del corpus.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Breve y emotivo, aunque gana mucho cuando se lo cruza con la circunstancia extrema de su escritura.",
+    },
+    narrativeFrame: {
+      label: "memoria de iniciación",
+      note: "La infancia funciona como lente para medir orgullo, deseo y sacrificio en pequeño formato.",
+    },
+    motifs: ["infancia", "honor", "recuerdo", "renuncia"],
+    legacy:
+      "Importa tanto por lo que narra como por el hecho de que Dostoievski siguiera escribiendo ficción bajo la presión del castigo.",
+    relatedWorks: ["noches-blancas", "el-nino-en-el-arbol-de-navidad"],
+  },
+  "el-sueno-del-tio": {
+    publicationNote: "Marca el regreso literario de 1859, ya fuera del gran trauma siberiano pero todavía bajo otra respiración narrativa.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Ideal para entrar al Dostoievski satírico de provincia sin pasar por la densidad filosófica posterior.",
+    },
+    narrativeFrame: {
+      label: "comedia de provincia",
+      note: "La trama vive de apariencias sociales, chismes y cálculo matrimonial más que de introspección profunda.",
+    },
+    motifs: ["provincia", "matrimonio", "farsa social", "ascenso"],
+    legacy:
+      "Demuestra que el regreso del exilio no produjo sólo gravedad testimonial: también reactivó su oído para el ridículo colectivo.",
+    relatedWorks: ["la-aldea-de-stepanchikovo", "una-historia-desagradable"],
+  },
+  "la-aldea-de-stepanchikovo": {
+    publicationNote: "Novela de 1859-1860 donde el retorno al centro literario llega por la vía de la comedia coral.",
+    readingDifficulty: {
+      level: "media",
+      note: "Más amplia que otras sátiras, pero muy legible si se toma a Fomá como eje de gravedad.",
+    },
+    narrativeFrame: {
+      label: "comedia coral",
+      note: "La casa se vuelve un teatro de obediencias, humillaciones y maniobras alrededor de un pequeño tirano.",
+    },
+    motifs: ["casa", "tirano doméstico", "servidumbre moral", "ridículo"],
+    legacy:
+      "Fomá Fomich es una figura decisiva para entender futuros moralistas manipuladores y resentidos del universo dostoievskiano.",
+    relatedWorks: ["el-sueno-del-tio", "los-demonios"],
+  },
+  "humillados-y-ofendidos": {
+    publicationNote: "Publicada en 1861, cuando Dostoievski vuelve a intervenir con fuerza en la vida literaria rusa.",
+    readingDifficulty: {
+      level: "media",
+      note: "Es más folletinesca y emotiva que otras grandes novelas, así que entra bien si se acepta su pulso melodramático.",
+    },
+    narrativeFrame: {
+      label: "melodrama urbano",
+      note: "Varias tramas de dependencia sentimental y desigualdad social se cruzan en una red de humillaciones.",
+    },
+    motifs: ["orfandad", "deuda afectiva", "aristocracia cruel", "niñez sufriente"],
+    legacy:
+      "Sirve como gran puente entre el primer Dostoievski sentimental y la maquinaria moral mucho más compleja de las novelas maduras.",
+    relatedWorks: ["pobres-gentes", "crimen-y-castigo"],
+  },
+  "memorias-de-la-casa-muerta": {
+    publicationNote: "Apareció por entregas entre 1860 y 1862, reelaborando la experiencia del presidio en forma literaria.",
+    readingDifficulty: {
+      level: "media",
+      note: "No exige seguir una gran trama, pero sí una lectura paciente de escenas, tipos humanos y descubrimientos morales.",
+    },
+    narrativeFrame: {
+      label: "memoria de presidio",
+      note: "La obra acumula observaciones, episodios y rostros para pensar castigo y humanidad desde dentro.",
+    },
+    motifs: ["presidio", "castigo", "trabajo forzado", "dignidad irreductible"],
+    legacy:
+      "Es la bisagra decisiva entre el primer Dostoievski y el autor maduro: después de Siberia ningún criminal en su ficción vuelve a ser simple.",
+    relatedWorks: ["memorias-del-subsuelo", "crimen-y-castigo"],
+  },
+  "una-historia-desagradable": {
+    publicationNote: "Texto de comienzos de los sesenta, escrito en una Rusia reformista que mezcla paternalismo y autocelebración moral.",
+    readingDifficulty: {
+      level: "media",
+      note: "Breve, pero muy dependiente del tono satírico y de la vergüenza corporal como motor de lectura.",
+    },
+    narrativeFrame: {
+      label: "sátira ideológica",
+      note: "La escena social se desarma a medida que el gesto liberal del superior revela su narcisismo.",
+    },
+    motifs: ["boda", "vergüenza", "paternalismo", "autoimagen liberal"],
+    legacy:
+      "Es una pieza crucial para ver a Dostoievski peleando no con la compasión, sino con su teatralización autosatisfecha.",
+    relatedWorks: ["el-cocodrilo", "la-mujer-de-otro"],
+  },
+  "memorias-del-subsuelo": {
+    publicationNote: "Publicada en 1864, en el mismo momento de crisis biográfica y combate intelectual contra el utilitarismo.",
+    readingDifficulty: {
+      level: "exigente",
+      note: "Es corta, pero filosófica, contradictoria y deliberadamente incómoda; pide leer la voz antes que la trama.",
+    },
+    narrativeFrame: {
+      label: "monólogo de conciencia",
+      note: "Primero discute ideas, luego encarna esas ideas en escenas de humillación, deseo y crueldad.",
+    },
+    motifs: ["resentimiento", "subsuelo", "libertad negativa", "autosabotaje"],
+    legacy:
+      "Es uno de los núcleos de la modernidad narrativa y filosófica: la conciencia se vuelve forma, problema y guerra consigo misma.",
+    relatedWorks: ["el-doble", "crimen-y-castigo"],
+    afterReading: [
+      "La segunda parte demuestra que la teoría del subsuelo no es abstracción: se verifica en la necesidad de herir cuando el otro ofrece intimidad.",
+      "La defensa de la libertad no aparece heroica, sino como capacidad de preferir el daño antes que quedar integrado a una mecánica racional.",
+    ],
+  },
+  "el-cocodrilo": {
+    publicationNote: "Publicado en 1865 como una sátira desproporcionada contra la estupidez pública y burocrática.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Rara y absurda, pero muy accesible si se la acepta como farsa intelectual.",
+    },
+    narrativeFrame: {
+      label: "menipea absurda",
+      note: "La premisa fantástica habilita una lluvia de voces, discursos públicos y ridiculeces burocráticas.",
+    },
+    motifs: ["cocodrilo", "discurso vacío", "burocracia", "absurdo"],
+    legacy:
+      "Muestra una vena satírica y antirrealista esencial para entender por qué Dostoievski no es sólo solemnidad ni descenso psicológico.",
+    relatedWorks: ["una-historia-desagradable", "bobok"],
+  },
+  "crimen-y-castigo": {
+    publicationNote: "Se publicó por entregas en 1866 en El Mensajero Ruso, escrita bajo deudas urgentes y presión material extrema.",
+    readingDifficulty: {
+      level: "media",
+      note: "Es larga e intensa, pero también una de las entradas más claras y magnéticas al Dostoievski maduro.",
+    },
+    narrativeFrame: {
+      label: "drama de conciencia",
+      note: "El crimen sucede temprano; lo central es seguir cómo una teoría se pudre dentro de la mente que quiso sostenerla.",
+    },
+    motifs: ["fiebre", "hacha", "culpa", "resurrección moral"],
+    legacy:
+      "Es la gran puerta de entrada a la obra madura y una de las novelas de culpa más influyentes de la literatura moderna.",
+    relatedWorks: ["memorias-del-subsuelo", "el-idiota"],
+    afterReading: [
+      "Sonia, Porfirio y Svidrigáilov funcionan como tres espejos distintos del destino de Raskólnikov: compasión, desmontaje racional y hundimiento sin redención.",
+      "El epílogo no clausura la novela en tono edificante; apenas abre la posibilidad mínima de una vida no regida por la teoría del hombre extraordinario.",
+    ],
+  },
+  "el-jugador": {
+    publicationNote: "Dictada en veintiséis días en 1866 para salir de un contrato editorial ruinoso, con experiencia personal de la ruleta en el nervio mismo del texto.",
+    readingDifficulty: {
+      level: "media",
+      note: "Se lee rápido por impulso narrativo, aunque conviene atender a cómo deseo y dinero usan la misma lógica compulsiva.",
+    },
+    narrativeFrame: {
+      label: "novela de compulsión",
+      note: "El ritmo imita el vaivén de apostar, perder, recuperar y volver a entregarse.",
+    },
+    motifs: ["ruleta", "deuda", "vértigo", "dependencia amorosa"],
+    legacy:
+      "Es el lugar donde la adicción deja de ser tema externo y se vuelve estructura narrativa y moral.",
+    relatedWorks: ["crimen-y-castigo", "el-adolescente"],
+    afterReading: [
+      "Alexéi no juega sólo por dinero: juega para sentir una soberanía inmediata que la vida social le niega.",
+      "La novela deja ver que la relación con Polina y la ruleta comparten una misma lógica de humillación, esperanza y recaída.",
+    ],
+  },
+  "el-idiota": {
+    publicationNote: "Compuesta entre 1867 y 1869 durante la estancia europea, entre mudanzas, deudas y pérdidas familiares.",
+    readingDifficulty: {
+      level: "exigente",
+      note: "No es difícil por oscuridad conceptual, sino por su inestabilidad tonal y el choque continuo entre compasión, deseo y desastre.",
+    },
+    narrativeFrame: {
+      label: "experimento moral coral",
+      note: "La novela prueba qué le hace una bondad radical al entrar en una sociedad organizada por orgullo, espectáculo y deseo posesivo.",
+    },
+    motifs: ["inocencia", "escándalo", "rostro", "belleza destructiva"],
+    legacy:
+      "Es el experimento moral más audaz de Dostoievski y una de sus obras más discutidas justamente porque no simplifica el bien.",
+    relatedWorks: ["crimen-y-castigo", "los-hermanos-karamazov"],
+    afterReading: [
+      "Myshkin no fracasa por ingenuo solamente: la novela muestra que la compasión también puede desordenar y herir cuando no encuentra una forma habitable.",
+      "Nastasia y Aglaya no son simples polos opuestos; juntas revelan los límites de un ideal de pureza enfrentado al deseo, el orgullo y la historia personal.",
+    ],
+  },
+  "el-eterno-marido": {
+    publicationNote: "Publicada en 1870 como novela breve de una precisión psicológica especialmente afilada.",
+    readingDifficulty: {
+      level: "media",
+      note: "Breve, incómoda y muy legible si se la sigue como duelo verbal de culpa, dependencia y revancha.",
+    },
+    narrativeFrame: {
+      label: "duelo psicológico",
+      note: "La información importa menos que el modo en que los personajes se rondan, se insinúan y se usan mutuamente.",
+    },
+    motifs: ["adulterio", "paternidad incierta", "rival íntimo", "resentimiento"],
+    legacy:
+      "Condensa en formato corto una de las zonas más precisas y crueles de Dostoievski: la intimidad convertida en vínculo vengativo.",
+    relatedWorks: ["una-criatura-docil", "el-idiota"],
+  },
+  "los-demonios": {
+    publicationNote: "Publicada entre 1871 y 1872 a partir del caso Necháiev y de la radicalización política del momento.",
+    readingDifficulty: {
+      level: "exigente",
+      note: "Coral, feroz y caótica a propósito; rinde más si se sigue como contagio de ideas y no como simple intriga.",
+    },
+    narrativeFrame: {
+      label: "novela coral de contagio",
+      note: "La energía del libro circula por rumores, consignas, histerias y vacíos morales que van tomando forma política.",
+    },
+    motifs: ["secta", "vacío espiritual", "incendio", "fanatismo"],
+    legacy:
+      "Es su gran novela política y una de las representaciones más potentes del mal como fenómeno colectivo y discursivo.",
+    relatedWorks: ["memorias-del-subsuelo", "los-hermanos-karamazov"],
+    afterReading: [
+      "La novela no explica el desastre por una sola ideología: muestra una mezcla de vacío, narcisismo, deseo de pertenencia y teatralidad del mal.",
+      "Stavroguin pesa tanto porque organiza el libro como centro de gravedad moral aunque muchas veces actúe por omisión, ausencia o irradiación.",
+    ],
+  },
+  bobok: {
+    publicationNote: "Relato de 1873 ligado al Diario de un escritor y a la experimentación satírica tardía.",
+    readingDifficulty: {
+      level: "media",
+      note: "Breve y muy divertida, aunque gana cuando se la toma como sátira metafísica y no sólo como rareza.",
+    },
+    narrativeFrame: {
+      label: "diálogo de ultratumba",
+      note: "La muerte afloja ciertos frenos y deja que hablen sin pudor voces todavía pegadas a su personaje social.",
+    },
+    motifs: ["cementerio", "voz residual", "vanidad", "descomposición"],
+    legacy:
+      "Es una pieza clave para entender la veta menipea, polifónica y escandalosa del Dostoievski tardío.",
+    relatedWorks: ["polzunkov", "el-cocodrilo"],
+  },
+  "el-adolescente": {
+    publicationNote: "Publicada por entregas entre 1875 y 1876, en plena madurez narrativa y de debate público del autor.",
+    readingDifficulty: {
+      level: "densa",
+      note: "Menos inmediata que Crimen, pero muy rica si se entra por la voz insegura y orgullosa de Arkadi.",
+    },
+    narrativeFrame: {
+      label: "bildungsroman desviado",
+      note: "La novela combina formación, documentos, secretos y filiación incierta desde una conciencia todavía en ensayo.",
+    },
+    motifs: ["herencia", "ilegitimidad", "proyecto personal", "documentos"],
+    legacy:
+      "Es la antesala íntima de Karamázov y una gran exploración de cómo la identidad se arma contra el miedo a depender del amor ajeno.",
+    relatedWorks: ["el-doble", "los-hermanos-karamazov"],
+    afterReading: [
+      "La idea de Arkadi no es sólo económica: es una defensa contra la humillación y contra la vulnerabilidad que implica querer ser querido.",
+      "Versílov importa porque vuelve visible una paternidad seductora, brillante y moralmente agujereada que el hijo no puede ni abrazar ni soltar.",
+    ],
+  },
+  "el-nino-en-el-arbol-de-navidad": {
+    publicationNote: "Cuento de 1876 dentro del Diario de un escritor, con un pie en la denuncia y otro en la visión religiosa.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Muy breve y conmovedor, aunque no conviene leerlo sólo como postal piadosa.",
+    },
+    narrativeFrame: {
+      label: "leyenda urbana navideña",
+      note: "Parte de la miseria concreta de la ciudad para levantar luego una visión de consuelo y juicio.",
+    },
+    motifs: ["niño abandonado", "nieve", "navidad", "trascendencia"],
+    legacy:
+      "Condensa en unas pocas páginas la mezcla tardía de realismo urbano, compasión social y esperanza cristiana.",
+    relatedWorks: ["el-arbol-de-navidad-y-la-boda", "el-sueno-de-un-hombre-ridiculo"],
+  },
+  "el-mujik-marei": {
+    publicationNote: "Publicado en 1876 y construido como memoria que vuelve sobre la experiencia del presidio desde otra luz.",
+    readingDifficulty: {
+      level: "entrada",
+      note: "Muy accesible, pero su verdadera fuerza aparece cuando se entiende el recuerdo dentro del presidio.",
+    },
+    narrativeFrame: {
+      label: "recuerdo transformador",
+      note: "La escena infantil importa por el cambio de mirada que produce después, no sólo por la anécdota en sí.",
+    },
+    motifs: ["campesino", "memoria", "ternura", "presidio"],
+    legacy:
+      "Es central para entender cómo Dostoievski piensa la humanidad del pueblo no como abstracción, sino como gesto concreto recordado a tiempo.",
+    relatedWorks: ["memorias-de-la-casa-muerta", "los-hermanos-karamazov"],
+    afterReading: [
+      "Maréi no resuelve el presidio, pero impide mirar a los condenados como pura brutalidad sin resto humano.",
+      "El texto convierte la memoria en una pequeña conversión de la mirada: no cambia el pasado, cambia la forma de habitarlo.",
+    ],
+  },
+  "una-criatura-docil": {
+    publicationNote: "Relato de 1876-1877 ligado a la experimentación tardía con monólogos y casos límite.",
+    readingDifficulty: {
+      level: "densa",
+      note: "Breve pero áspera: exige escuchar a un narrador que se delata mientras intenta justificarse.",
+    },
+    narrativeFrame: {
+      label: "confesión unilateral",
+      note: "La historia aparece filtrada por una sola voz febril que quiere ordenar demasiado tarde lo sucedido.",
+    },
+    motifs: ["silencio", "prestamista", "matrimonio", "dominación"],
+    legacy:
+      "Es una de las cumbres breves del Dostoievski psicológico y muestra cuánto puede hacer con una sola conciencia que se contradice.",
+    relatedWorks: ["el-eterno-marido", "memorias-del-subsuelo"],
+  },
+  "el-sueno-de-un-hombre-ridiculo": {
+    publicationNote: "Cuento filosófico de 1877 dentro del Diario de un escritor, en plena condensación del pensamiento tardío.",
+    readingDifficulty: {
+      level: "media",
+      note: "Breve y muy directa en su impulso visionario, aunque sus capas se abren más en relectura.",
+    },
+    narrativeFrame: {
+      label: "parábola visionaria",
+      note: "El relato enlaza nihilismo, sueño cósmico y conversión moral como una misma trayectoria interior.",
+    },
+    motifs: ["suicidio", "sueño", "paraíso caído", "responsabilidad universal"],
+    legacy:
+      "Funciona como un concentrado extremo del Dostoievski tardío: caída, libertad, culpa y redención en miniatura.",
+    relatedWorks: ["memorias-del-subsuelo", "los-hermanos-karamazov"],
+  },
+  "los-hermanos-karamazov": {
+    publicationNote: "Publicada entre 1879 y 1880 como culminación de la obra tardía y umbral de una segunda parte que nunca existió.",
+    readingDifficulty: {
+      level: "exigente",
+      note: "Es larga, coral y filosófica, pero también extraordinariamente generosa: pide tiempo más que especialización.",
+    },
+    narrativeFrame: {
+      label: "novela polifónica total",
+      note: "Parricidio, infancia, santidad, sensualidad y duda intelectual conviven como voces que ninguna síntesis borra del todo.",
+    },
+    motifs: ["parricidio", "hermandad", "culpa compartida", "gracia"],
+    legacy:
+      "Es la culminación del universo dostoievskiano y una de las grandes novelas de responsabilidad, libertad y fe de la literatura.",
+    relatedWorks: ["el-idiota", "los-demonios"],
+    afterReading: [
+      "La culpa del libro no se deja reducir al autor material del crimen: se expande como red de omisiones, deseos y palabras que preparan el acto.",
+      "Las tramas de los niños y de Aliosha impiden que la novela quede encerrada en el parricidio; la abren hacia una ética de memoria compartida y cuidado futuro.",
+    ],
+  },
+};
+
+const BOOK_REFERENCE_MATERIALS = {
+  "crimen-y-castigo": {
+    title: "Referencia visual",
+    caption: "Primera edición de Crimen y castigo",
+    body: "Portada histórica incorporada a la ficha como referencia material de la novela.",
+    image: crimeAndPunishmentCover,
+    imageStyle: { objectPosition: "center top", filter: "sepia(0.18) saturate(0.94) brightness(0.92)" },
+    aspectRatio: "431 / 599",
+  },
+  "los-hermanos-karamazov": {
+    title: "Referencia visual",
+    caption: "Manuscrito de Los hermanos Karamázov",
+    body: "Manuscrito de trabajo para sumar una referencia directa al proceso de escritura de la obra.",
+    image: manuscriptDraft,
+    imageStyle: { filter: "grayscale(1) contrast(1.08) brightness(0.84)" },
+    aspectRatio: "593 / 395",
+  },
+};
+
+function mergeEditorialEnrichment(id, editorial) {
+  const enrichment = BOOK_EDITORIAL_ENRICHMENTS[id] || {};
+  const materials = BOOK_REFERENCE_MATERIALS[id] || null;
+
+  return {
+    ...editorial,
+    ...enrichment,
+    referenceMaterial: materials,
+    sources: {
+      ...editorial.sources,
+      publication: dedupeSources([...(editorial.sources?.context || [])]),
+      legacy: dedupeSources([...(editorial.sources?.readingGuide || []), ...(editorial.sources?.context || [])]),
+      materials: materials ? dedupeSources([...(editorial.sources?.summary || []), ...(editorial.sources?.context || [])]) : [],
+    },
+  };
+}
+
+const RAW_BOOK_EDITORIAL = {
   "pobres-gentes": createBookEditorial({
     title: "Poor Folk",
     period: "early",
@@ -678,3 +1261,7 @@ export const BOOK_EDITORIAL = {
     },
   }),
 };
+
+export const BOOK_EDITORIAL = Object.fromEntries(
+  Object.entries(RAW_BOOK_EDITORIAL).map(([id, editorial]) => [id, mergeEditorialEnrichment(id, editorial)]),
+);
