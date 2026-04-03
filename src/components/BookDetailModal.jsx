@@ -5,6 +5,19 @@ import SourcesDisclosure from "./SourcesDisclosure.jsx";
 import { COLORS, alpha } from "../theme.js";
 
 const UI_FONT = "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif";
+const DEFAULT_OWNERSHIP = "sin-ejemplar";
+
+const OWNERSHIP_ACCENTS = {
+  "sin-ejemplar": COLORS.textMuted,
+  fisico: COLORS.goldAccent,
+  digital: COLORS.inProgress,
+  prestado: COLORS.textSecondary,
+};
+
+function formatLabel(value) {
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 function SectionEyebrow({ children, color = COLORS.textMuted }) {
   return (
@@ -97,8 +110,163 @@ function QuestionList({ items }) {
   );
 }
 
-function SpoilerBlock({ body }) {
-  if (!body) return null;
+function EditorialPairSection({ title, items }) {
+  const visibleItems = items?.filter((item) => item?.body);
+  if (!visibleItems?.length) return null;
+
+  return (
+    <div
+      style={{
+        marginBottom: 18,
+        padding: "14px 16px",
+        borderRadius: 18,
+        background: alpha(COLORS.bgCard, 0.84),
+        border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+      }}
+    >
+      <DetailSectionTitle>{title}</DetailSectionTitle>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: visibleItems.length > 1 ? "repeat(auto-fit, minmax(220px, 1fr))" : "1fr",
+          gap: 12,
+        }}
+      >
+        {visibleItems.map((item) => (
+          <div
+            key={`${title}-${item.eyebrow || item.title}`}
+            style={{
+              padding: "12px 14px",
+              borderRadius: 16,
+              background: alpha(COLORS.bgMain, 0.42),
+              border: `1px solid ${alpha(COLORS.border, 0.9)}`,
+            }}
+          >
+            {item.eyebrow && <SectionEyebrow>{item.eyebrow}</SectionEyebrow>}
+            {item.title && (
+              <div style={{ fontSize: 18, lineHeight: 1.1, color: COLORS.textBook, marginTop: 6, marginBottom: 8 }}>
+                {item.title}
+              </div>
+            )}
+            <div style={{ fontSize: 14, lineHeight: 1.68, color: COLORS.textSecondary }}>{item.body}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MotifStrip({ items }) {
+  if (!items?.length) return null;
+
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <DetailSectionTitle>Motivos</DetailSectionTitle>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {items.map((item) => (
+          <span
+            key={item}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 999,
+              border: `1px solid ${alpha(COLORS.goldDim, 0.48)}`,
+              background: alpha(COLORS.gold, 0.08),
+              color: COLORS.textBook,
+              fontFamily: UI_FONT,
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReferenceMaterialBlock({ item }) {
+  if (!item) return null;
+
+  return (
+    <div
+      style={{
+        marginBottom: 18,
+        padding: "14px 16px",
+        borderRadius: 18,
+        background: alpha(COLORS.bgCard, 0.84),
+        border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+      }}
+    >
+      <DetailSectionTitle>{item.title}</DetailSectionTitle>
+      <div style={{ display: "grid", gap: 12 }}>
+        <div
+          style={{
+            width: "min(320px, 100%)",
+            aspectRatio: item.aspectRatio,
+            borderRadius: 18,
+            overflow: "hidden",
+            border: `1px solid ${alpha(COLORS.border, 0.92)}`,
+            background: alpha(COLORS.bgMain, 0.6),
+            boxShadow: `0 18px 34px ${alpha("#000000", 0.22)}`,
+          }}
+        >
+          <img
+            src={item.image}
+            alt={item.caption}
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "block",
+              objectFit: "cover",
+              ...item.imageStyle,
+            }}
+          />
+        </div>
+        <div style={{ display: "grid", gap: 4 }}>
+          <div style={{ fontSize: 15, color: COLORS.textBook }}>{item.caption}</div>
+          <div style={{ fontSize: 14, lineHeight: 1.68, color: COLORS.textSecondary }}>{item.body}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RelatedWorksBlock({ items, booksById, onOpenBook }) {
+  const works = items?.map((id) => booksById[id]).filter(Boolean) || [];
+  if (!works.length) return null;
+
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <DetailSectionTitle>Conecta con</DetailSectionTitle>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {works.map((work) => (
+          <button
+            key={work.id}
+            type="button"
+            onClick={() => onOpenBook(work)}
+            style={{
+              padding: "9px 12px",
+              borderRadius: 999,
+              border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+              background: alpha(COLORS.bgCard, 0.78),
+              color: COLORS.textBook,
+              fontSize: 12,
+              fontFamily: UI_FONT,
+              cursor: "pointer",
+            }}
+          >
+            {work.title}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SpoilerBlock({ items }) {
+  if (!items?.length) return null;
 
   return (
     <details
@@ -122,50 +290,69 @@ function SpoilerBlock({ body }) {
       >
         Después de leer / con spoilers
       </summary>
-      <p
-        style={{
-          margin: "12px 0 0",
-          fontSize: 14,
-          lineHeight: 1.72,
-          color: COLORS.textSecondary,
-          whiteSpace: "pre-wrap",
-        }}
-        >
-        {body}
-      </p>
+      <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+        {items.map((item) => (
+          <div
+            key={item}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 14,
+              background: alpha(COLORS.bgMain, 0.34),
+              border: `1px solid ${alpha(COLORS.border, 0.9)}`,
+              fontSize: 14,
+              lineHeight: 1.68,
+              color: COLORS.textSecondary,
+            }}
+          >
+            {item}
+          </div>
+        ))}
+      </div>
     </details>
   );
 }
 
 function BookDetailModal({
   book,
+  booksById,
   bookState,
   status,
   chapter,
+  ownershipOptions,
   themes,
   workType,
   noteText,
   setNoteText,
   setBookStatus,
+  setBookOwnership,
+  setBookLoanedTo,
+  setBookRating,
+  setBookReview,
   addNote,
   deleteNote,
   getBookAccent,
   actionButtonStyle,
+  onOpenBook,
   onClose,
 }) {
   const sliderValue = status === "terminado" ? book.chapters : status === "en-progreso" ? chapter || 1 : 0;
   const sliderPct = book.chapters > 0 ? (sliderValue / book.chapters) * 100 : 0;
   const activeColor = sliderValue === 0 ? COLORS.textLabel : sliderValue === book.chapters ? COLORS.gold : COLORS.inProgress;
   const statusLabel = sliderValue === 0 ? "No leído" : sliderValue === book.chapters ? "Terminado" : "En progreso";
+  const ownership = bookState.ownership || DEFAULT_OWNERSHIP;
+  const loanedTo = typeof bookState.loanedTo === "string" ? bookState.loanedTo : "";
+  const review = typeof bookState.review === "string" ? bookState.review : "";
+  const rating = bookState.rating || 0;
+  const ratingEditable = status === "terminado";
   const sourceGroups = [
     { label: "Resumen", items: book.sources?.summary },
-    { label: "Cómo leerla", items: book.sources?.readingGuide },
-    { label: "Contexto de escritura", items: book.sources?.context },
-    { label: "Por qué importa", items: book.sources?.readingGuide },
-    { label: "Claves de lectura", items: book.sources?.readingGuide },
+    { label: "Publicación y momento", items: book.sources?.publication },
+    { label: "Cómo entrarle", items: book.sources?.readingGuide },
     book.characters?.length > 0 || book.relationships?.length > 0
       ? { label: "Personajes y relaciones", items: book.sources?.characters }
       : null,
+    { label: "Legado", items: book.sources?.legacy },
+    { label: "Referencia material", items: book.sources?.materials },
     { label: "Después de leer", items: book.sources?.afterReading },
   ].filter(Boolean);
 
@@ -274,6 +461,88 @@ function BookDetailModal({
               </div>
             )}
           </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              padding: "14px 14px 12px",
+              borderRadius: 18,
+              border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+              background: alpha(COLORS.bgCard, 0.84),
+            }}
+          >
+            <DetailSectionTitle>Ejemplar en biblioteca</DetailSectionTitle>
+
+            <div
+              className="ownership-grid"
+            >
+              {ownershipOptions.map((option) => {
+                const active = ownership === option.value;
+                const color = OWNERSHIP_ACCENTS[option.value] || COLORS.textSecondary;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setBookOwnership(book.id, option.value)}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      border: `1px solid ${active ? alpha(color, 0.58) : alpha(COLORS.border, 0.95)}`,
+                      background: active ? alpha(color, 0.14) : alpha(COLORS.bgMain, 0.58),
+                      color: active ? color : COLORS.textSecondary,
+                      fontFamily: UI_FONT,
+                      fontSize: 12,
+                      lineHeight: 1.4,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {ownership === "prestado" && (
+              <div style={{ marginTop: 12 }}>
+                <label
+                  htmlFor={`loaned-to-${book.id}`}
+                  style={{
+                    display: "block",
+                    marginBottom: 6,
+                    fontFamily: UI_FONT,
+                    fontSize: 11,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: COLORS.textMuted,
+                  }}
+                >
+                  Prestado a
+                </label>
+                <input
+                  id={`loaned-to-${book.id}`}
+                  type="text"
+                  value={loanedTo}
+                  onChange={(event) => setBookLoanedTo(book.id, event.target.value)}
+                  onBlur={(event) => setBookLoanedTo(book.id, event.target.value.trim())}
+                  placeholder="Nombre de la persona"
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    fontSize: 14,
+                    fontFamily: "inherit",
+                    background: alpha(COLORS.bgMain, 0.66),
+                    border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+                    borderRadius: 14,
+                    color: COLORS.text,
+                    outline: "none",
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
@@ -376,10 +645,53 @@ function BookDetailModal({
             {book.desc}
           </p>
 
+          <EditorialPairSection
+            title="Cómo entra esta obra"
+            items={[
+              book.readingDifficulty
+                ? {
+                    eyebrow: "Dificultad",
+                    title: formatLabel(book.readingDifficulty.level),
+                    body: book.readingDifficulty.note,
+                  }
+                : null,
+              book.narrativeFrame
+                ? {
+                    eyebrow: "Forma narrativa",
+                    title: formatLabel(book.narrativeFrame.label),
+                    body: book.narrativeFrame.note,
+                  }
+                : null,
+            ]}
+          />
+
+          <EditorialPairSection
+            title="Publicación y momento"
+            items={[
+              book.publicationNote
+                ? {
+                    eyebrow: "Publicación",
+                    title: `${book.year}`,
+                    body: book.publicationNote,
+                  }
+                : null,
+              book.writtenContext
+                ? {
+                    eyebrow: "Contexto",
+                    title: "Escritura y período",
+                    body: book.writtenContext,
+                  }
+                : null,
+            ]}
+          />
+
+          <MotifStrip items={book.motifs} />
           <TextBlock title="Cómo leerla" body={book.readingGuide} />
-          <TextBlock title="Contexto de escritura" body={book.writtenContext} italic />
           <TextBlock title="Por qué importa" body={book.whyItMatters} />
+          <RelatedWorksBlock items={book.relatedWorks} booksById={booksById} onOpenBook={onOpenBook} />
+          <TextBlock title="Legado" body={book.legacy} />
           <QuestionList items={book.keyQuestions} />
+          <ReferenceMaterialBlock item={book.referenceMaterial} />
 
           {book.characters?.length > 0 && (
             <div style={{ marginBottom: 18 }}>
@@ -398,24 +710,116 @@ function BookDetailModal({
           {book.relationships?.length > 0 && (
             <div style={{ marginBottom: 18 }}>
               <DetailSectionTitle>Relaciones entre personajes</DetailSectionTitle>
-              <div
-                style={{
-                  borderRadius: 18,
-                  border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-                  background: alpha(COLORS.bgCard, 0.84),
-                  overflow: "hidden",
-                }}
-              >
-                <RelationshipDiagram characters={book.characters} relationships={book.relationships} />
+            <div
+              className="relation-diagram-shell"
+              style={{
+                borderRadius: 18,
+                border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+                background: alpha(COLORS.bgCard, 0.84),
+                overflowY: "hidden",
+              }}
+            >
+              <RelationshipDiagram characters={book.characters} relationships={book.relationships} />
               </div>
             </div>
           )}
 
-          <SpoilerBlock body={book.afterReading} />
+          <SpoilerBlock items={book.afterReading} />
 
           <div style={{ marginTop: 22 }}>
+            <DetailSectionTitle>Mi valoración</DetailSectionTitle>
+
+            {ratingEditable ? (
+              <div
+                style={{
+                  marginBottom: 22,
+                  padding: "14px 16px",
+                  borderRadius: 18,
+                  background: alpha(COLORS.bgCard, 0.84),
+                  border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+                }}
+              >
+                <div
+                  role="radiogroup"
+                  aria-label="Valoración de 1 a 5 estrellas"
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    marginBottom: 12,
+                  }}
+                >
+                  {Array.from({ length: 5 }, (_, index) => {
+                    const value = index + 1;
+                    const active = value <= rating;
+
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={rating === value}
+                        aria-label={`${value} ${value === 1 ? "estrella" : "estrellas"}`}
+                        onClick={() => setBookRating(book.id, value)}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 14,
+                          border: `1px solid ${alpha(active ? COLORS.goldAccent : COLORS.border, 0.95)}`,
+                          background: active ? alpha(COLORS.gold, 0.14) : alpha(COLORS.bgMain, 0.58),
+                          color: active ? COLORS.goldAccent : COLORS.textMuted,
+                          fontSize: 22,
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        ★
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <textarea
+                  value={review}
+                  onChange={(event) => setBookReview(book.id, event.target.value)}
+                  onBlur={(event) => setBookReview(book.id, event.target.value.trim())}
+                  placeholder="Escribí tu review personal de esta lectura…"
+                  rows={4}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    fontSize: 14,
+                    lineHeight: 1.65,
+                    fontFamily: "inherit",
+                    background: alpha(COLORS.bgMain, 0.66),
+                    border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+                    borderRadius: 16,
+                    color: COLORS.text,
+                    resize: "vertical",
+                    outline: "none",
+                    minHeight: 110,
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  marginBottom: 22,
+                  padding: "14px 16px",
+                  borderRadius: 18,
+                  background: alpha(COLORS.bgCard, 0.84),
+                  border: `1px solid ${alpha(COLORS.border, 0.95)}`,
+                  color: COLORS.textSecondary,
+                  fontSize: 14,
+                  lineHeight: 1.65,
+                }}
+              >
+                La valoración y la review se habilitan cuando marques el libro como terminado.
+              </div>
+            )}
+
             <DetailSectionTitle>Notas personales</DetailSectionTitle>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className="note-composer">
               <textarea
                 value={noteText}
                 onChange={(event) => setNoteText(event.target.value)}

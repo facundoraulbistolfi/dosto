@@ -11,32 +11,12 @@ const CATEGORY_LABELS = {
   context: "Rusia y contexto",
 };
 
-function MetricPill({ label, value, color = COLORS.goldAccent }) {
+function LibraryIcon({ color = "currentColor" }) {
   return (
-    <div
-      style={{
-        padding: "10px 14px",
-        borderRadius: 18,
-        border: `1px solid ${alpha(color, 0.26)}`,
-        background:
-          `radial-gradient(circle at top, ${alpha(color, 0.1)} 0%, transparent 44%), ${alpha(COLORS.bgCard, 0.82)}`,
-        boxShadow: `0 14px 28px ${alpha("#000000", 0.22)}`,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: UI_FONT,
-          fontSize: 10,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: COLORS.textMuted,
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ fontSize: 24, lineHeight: 1, color }}>{value}</div>
-    </div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4.8 5.2h4.2v13.6H4.8zM10.3 4.2h4.2v14.6h-4.2zM15.8 6.2H20v12.6h-4.2z" fill={color} opacity="0.92" />
+      <path d="M4 19.6h16" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.72" />
+    </svg>
   );
 }
 
@@ -177,7 +157,7 @@ function BookSelectionPanel({ book, bookStates, themes, workTypes }) {
             {book.titleOrig} · {book.year}
           </div>
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          <div className="selection-meta-row">
             <span
               style={{
                 padding: "5px 10px",
@@ -261,7 +241,7 @@ function BookSelectionPanel({ book, bookStates, themes, workTypes }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: 14 }}>
+      <div style={{ display: "grid", gap: 14, minWidth: 0 }}>
         <TextPanel title="Cómo leerla" body={book.readingGuide} />
         <TextPanel title="Contexto de escritura" body={book.writtenContext} italic />
         <TextPanel title="Por qué importa" body={book.whyItMatters} />
@@ -402,18 +382,13 @@ function EmptySelectionPanel() {
       }}
     >
       <div style={{ fontSize: 22, color: COLORS.textBook, marginBottom: 8 }}>Seleccioná una obra o un evento</div>
-      <div style={{ fontSize: 15, lineHeight: 1.7, color: COLORS.textSecondary, maxWidth: 680, margin: "0 auto" }}>
-        El detalle aparece acá abajo para que la cronología siga siendo parte de la misma página. En esta sección ya no usamos modales.
-      </div>
     </div>
   );
 }
 
-function VerticalTimelinePage({ novels, bookStates, themes, workTypes }) {
+function VerticalTimelinePage({ novels, bookStates, themes, workTypes, onBackToLibrary }) {
   const [selection, setSelection] = useState(null);
   const novelsById = useMemo(() => Object.fromEntries(novels.map((novel) => [novel.id, novel])), [novels]);
-  const finishedCount = novels.filter((novel) => bookStates[novel.id]?.status === "terminado").length;
-  const inProgressCount = novels.filter((novel) => bookStates[novel.id]?.status === "en-progreso").length;
 
   return (
     <div style={{ display: "grid", gap: 22 }}>
@@ -430,38 +405,64 @@ function VerticalTimelinePage({ novels, bookStates, themes, workTypes }) {
         }}
       >
         <div style={{ position: "relative", zIndex: 1, display: "grid", gap: 18 }}>
-          <div style={{ display: "grid", gap: 10, maxWidth: 820 }}>
-            <div
-              style={{
-                fontFamily: UI_FONT,
-                fontSize: 11,
-                letterSpacing: "0.24em",
-                textTransform: "uppercase",
-                color: COLORS.textLabel,
-              }}
-            >
-              Cronología
-            </div>
-            <div style={{ fontSize: "clamp(36px, 6vw, 58px)", lineHeight: 0.94, color: COLORS.goldAccent }}>
-              La visual completa de vida, contexto y obras.
-            </div>
-            <div style={{ fontSize: 16, lineHeight: 1.72, color: COLORS.textSecondary }}>
-              Hover para leer rápido, clic para fijar el detalle abajo y scroll con el mismo tono editorial que el resto de la biblioteca.
-            </div>
-          </div>
-
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: 12,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 16,
+              alignItems: "start",
+              flexWrap: "wrap",
             }}
           >
-            <MetricPill label="Obras" value={novels.length} />
-            <MetricPill label="Terminadas" value={finishedCount} />
-            <MetricPill label="En progreso" value={inProgressCount} color={COLORS.inProgress} />
-            <MetricPill label="Detalle" value="Debajo" color={COLORS.textBook} />
+            <div style={{ display: "grid", gap: 10, maxWidth: 820 }}>
+              <div style={{ fontSize: "clamp(34px, 5vw, 52px)", lineHeight: 0.96, color: COLORS.goldAccent }}>
+                Cronología de vida, contexto y obras
+              </div>
+            </div>
+            <button
+              type="button"
+              aria-label="Volver a la biblioteca"
+              title="Volver a la biblioteca principal"
+              onClick={onBackToLibrary}
+              style={{
+                minHeight: 44,
+                padding: "0 14px",
+                borderRadius: 999,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                border: `1px solid ${alpha(COLORS.border, 0.92)}`,
+                background: alpha(COLORS.bgCard, 0.62),
+                color: COLORS.textSecondary,
+                boxShadow: `0 12px 26px ${alpha("#000000", 0.16)}`,
+                cursor: "pointer",
+                transition: "transform 0.2s ease, border-color 0.2s ease, background 0.2s ease",
+              }}
+              onMouseEnter={(event) => {
+                event.currentTarget.style.transform = "translateY(-1px)";
+                event.currentTarget.style.borderColor = alpha(COLORS.goldDim, 0.64);
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.transform = "translateY(0)";
+                event.currentTarget.style.borderColor = alpha(COLORS.border, 0.92);
+              }}
+            >
+              <LibraryIcon color={COLORS.goldAccent} />
+              <span
+                style={{
+                  fontFamily: UI_FONT,
+                  fontSize: 12,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Biblioteca
+              </span>
+            </button>
           </div>
+
         </div>
       </section>
 

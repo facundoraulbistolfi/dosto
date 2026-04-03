@@ -91,7 +91,7 @@ function RelationshipDiagram({ characters, relationships }) {
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      style={{ width: "100%", height: "auto", display: "block" }}
+      style={{ width: `max(100%, ${W}px)`, height: "auto", display: "block" }}
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect width={W} height={H} fill={COLORS.bgCard} rx={8} />

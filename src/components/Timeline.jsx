@@ -213,6 +213,44 @@ function StatusPreview({ status }) {
   );
 }
 
+function LifeMarker({ x, y, event, isSelected }) {
+  const stroke = isSelected ? COLORS.textBook : CATEGORY_META.life.color;
+  const fill = alpha(CATEGORY_META.life.color, 0.18);
+  const strokeWidth = isSelected ? 1.5 : 1.05;
+
+  if (event.id === "life-1821-birth") {
+    return (
+      <path
+        d={`M${x} ${y - 6.4} L${x + 1.9} ${y - 1.9} L${x + 6.5} ${y - 1.4} L${x + 3} ${y + 1.7} L${x + 4} ${y + 6.4} L${x} ${y + 3.8} L${x - 4} ${y + 6.4} L${x - 3} ${y + 1.7} L${x - 6.5} ${y - 1.4} L${x - 1.9} ${y - 1.9} Z`}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+    );
+  }
+
+  if (event.id === "life-1881-death") {
+    return (
+      <>
+        <line x1={x} y1={y - 6.5} x2={x} y2={y + 6.5} stroke={stroke} strokeWidth={strokeWidth + 0.15} strokeLinecap="round" />
+        <line x1={x - 4.5} y1={y - 2.2} x2={x + 4.5} y2={y - 2.2} stroke={stroke} strokeWidth={strokeWidth + 0.15} strokeLinecap="round" />
+      </>
+    );
+  }
+
+  return (
+    <circle
+      cx={x}
+      cy={y}
+      r="5"
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+    />
+  );
+}
+
 function WorkMarker({ type, x, y, visual, active = false }) {
   const stroke = active ? COLORS.textBook : visual.stroke;
   const strokeWidth = active ? 1.6 : 1.15;
@@ -343,7 +381,7 @@ function Timeline({ novels, bookStates, selectedId = null, onSelectBook, onSelec
         <div
           role="toolbar"
           aria-label="Filtrar capas de la cronología"
-          style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}
+          className="timeline-filter-toolbar"
         >
           <button
             type="button"
@@ -392,18 +430,10 @@ function Timeline({ novels, bookStates, selectedId = null, onSelectBook, onSelec
           })}
         </div>
 
-        <div style={{ fontSize: 12, color: COLORS.textSecondary, fontFamily: UI_FONT }}>
-          Estado dentro de obras: dorado lleno = terminado, centro verde = en progreso, contorno = no leído.
-        </div>
       </div>
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 18,
-          padding: "6px 4px 0",
-        }}
+        className="timeline-legend-grid"
       >
         <LegendGroup title="Categoría">
           <LegendRow icon={<CategoryDot color={CATEGORY_META.work.color} />} label="Obras publicadas" tone={COLORS.textSecondary} />
@@ -669,14 +699,7 @@ function Timeline({ novels, bookStates, selectedId = null, onSelectBook, onSelec
                   {...getEventInteractionProps(event)}
                 >
                   <line x1={x} y1={lifeAnchorY} x2={x} y2={labelY - 10} stroke={alpha(CATEGORY_META.life.color, 0.42)} strokeWidth="0.9" />
-                  <circle
-                    cx={x}
-                    cy={lifeAnchorY}
-                    r="5"
-                    fill={alpha(CATEGORY_META.life.color, 0.18)}
-                    stroke={isSelected ? COLORS.textBook : CATEGORY_META.life.color}
-                    strokeWidth={isSelected ? "1.5" : "1.05"}
-                  />
+                  <LifeMarker x={x} y={lifeAnchorY} event={event} isSelected={isSelected} />
                   <text
                     x={x}
                     y={labelY}

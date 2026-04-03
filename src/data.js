@@ -945,13 +945,38 @@ const BASE_NOVELS = [
   },
 ];
 
+function normalizeAfterReading(afterReading) {
+  if (Array.isArray(afterReading)) {
+    return afterReading.map((item) => item?.trim()).filter(Boolean);
+  }
+
+  if (typeof afterReading !== "string") return [];
+
+  const sentences = afterReading
+    .split(/(?<=[.!?])\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (sentences.length <= 2) return sentences;
+
+  return [sentences.slice(0, -1).join(" "), sentences[sentences.length - 1]];
+}
+
 export const NOVELS = BASE_NOVELS.map((novel) => {
   const editorial = BOOK_EDITORIAL[novel.id] || {};
 
   return {
     ...novel,
     ...editorial,
+    afterReading: normalizeAfterReading(editorial.afterReading),
     relatedEventIds: editorial.relatedEventIds || [],
+    relatedWorks: editorial.relatedWorks || [],
+    motifs: editorial.motifs || [],
+    publicationNote: editorial.publicationNote || "",
+    readingDifficulty: editorial.readingDifficulty || null,
+    narrativeFrame: editorial.narrativeFrame || null,
+    legacy: editorial.legacy || "",
+    referenceMaterial: editorial.referenceMaterial || null,
     sources: editorial.sources || {},
   };
 });
