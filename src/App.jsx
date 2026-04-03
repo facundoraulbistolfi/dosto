@@ -3,17 +3,58 @@ import { NOVELS, THEMES, WORK_TYPES } from "./expandedData.js";
 import { COLORS, alpha } from "./theme.js";
 import CoverArt from "./components/CoverArt.jsx";
 import StatsBar from "./components/StatsBar.jsx";
-import Timeline from "./components/Timeline.jsx";
 import BookDetailModal from "./components/BookDetailModal.jsx";
 import TimelineEventModal from "./components/TimelineEventModal.jsx";
+import VerticalTimelinePage from "./components/VerticalTimelinePage.jsx";
 
 const STORAGE_KEY = "dostoevsky-read";
 const UI_FONT = "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif";
 const BOOKS_BY_ID = Object.fromEntries(NOVELS.map((novel) => [novel.id, novel]));
+const readViewFromHash = () => (window.location.hash === "#cronologia" ? "timeline" : "library");
 
 const APP_CSS = `
+  @keyframes heroRise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .app-shell {
-    padding: clamp(18px, 3.2vw, 36px);
+    padding: clamp(20px, 3.5vw, 40px);
+  }
+
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: ${alpha(COLORS.goldDim, 0.72)} ${alpha(COLORS.bgMain, 0.92)};
+  }
+
+  body::-webkit-scrollbar,
+  .editorial-scroll::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  body::-webkit-scrollbar-track,
+  .editorial-scroll::-webkit-scrollbar-track {
+    background: ${alpha(COLORS.bgCard, 0.82)};
+    border-radius: 999px;
+  }
+
+  body::-webkit-scrollbar-thumb,
+  .editorial-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, ${alpha(COLORS.goldAccent, 0.82)}, ${alpha(COLORS.goldDim, 0.88)});
+    border: 2px solid ${alpha(COLORS.bgMain, 0.88)};
+    border-radius: 999px;
+  }
+
+  body::-webkit-scrollbar-thumb:hover,
+  .editorial-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, ${alpha(COLORS.goldAccent, 0.94)}, ${alpha(COLORS.gold, 0.94)});
   }
 
   .app-content {
@@ -21,7 +62,25 @@ const APP_CSS = `
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 24px;
+  }
+
+  .hero-panel {
+    animation: heroRise 760ms ease both;
+  }
+
+  .hero-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 16% 12%, rgba(240, 205, 135, 0.14) 0%, transparent 26%),
+      radial-gradient(circle at 84% 18%, rgba(213, 164, 74, 0.12) 0%, transparent 24%);
+  }
+
+  .surface-panel {
+    backdrop-filter: blur(8px);
   }
 
   .intro-grid {
@@ -45,9 +104,11 @@ const APP_CSS = `
   }
 
   .reading-item {
-    border: 1px solid rgba(54, 64, 81, 0.9);
+    border: 1px solid rgba(49, 64, 54, 0.94);
     border-radius: 18px;
-    background: rgba(9, 13, 20, 0.82);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 18%),
+      linear-gradient(135deg, rgba(140,169,148,0.06) 0%, rgba(12,15,19,0.96) 72%);
     padding: 12px;
     display: grid;
     grid-template-columns: 58px minmax(0, 1fr);
@@ -59,9 +120,9 @@ const APP_CSS = `
   }
 
   .reading-item:hover {
-    transform: translateY(-2px);
-    border-color: rgba(127, 164, 141, 0.72);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+    transform: translateY(-3px);
+    border-color: rgba(213, 164, 74, 0.38);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
   }
 
   .filters-top {
@@ -100,11 +161,12 @@ const APP_CSS = `
     align-items: start;
     padding: 18px;
     border-radius: 24px;
-    border: 1px solid rgba(54, 64, 81, 0.92);
+    border: 1px solid rgba(53, 43, 26, 0.92);
     background:
-      linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 22%),
-      rgba(13, 17, 25, 0.92);
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+      radial-gradient(circle at top right, rgba(240,205,135,0.08) 0%, transparent 32%),
+      linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 22%),
+      rgba(12, 15, 19, 0.96);
+    box-shadow: 0 22px 52px rgba(0, 0, 0, 0.28);
     cursor: pointer;
     transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
     overflow: hidden;
@@ -118,10 +180,21 @@ const APP_CSS = `
     pointer-events: none;
   }
 
+  .book-poster::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(240,205,135,0.5), transparent);
+    pointer-events: none;
+  }
+
   .book-poster:hover {
-    transform: translateY(-4px);
-    border-color: rgba(220, 180, 109, 0.58);
-    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.28);
+    transform: translateY(-6px);
+    border-color: rgba(240, 205, 135, 0.42);
+    box-shadow: 0 30px 64px rgba(0, 0, 0, 0.36);
   }
 
   .book-poster:hover .cover-frame {
@@ -151,13 +224,14 @@ const APP_CSS = `
     line-height: 1.02;
     margin: 0;
     color: ${COLORS.textBook};
+    text-wrap: balance;
   }
 
   .book-description {
     margin: 0;
     font-size: 15px;
     line-height: 1.62;
-    color: ${COLORS.textDesc};
+    color: ${COLORS.textSecondary};
     display: -webkit-box;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
@@ -185,6 +259,19 @@ const APP_CSS = `
     text-transform: uppercase;
     color: ${COLORS.textMuted};
     margin-bottom: 10px;
+  }
+
+  .metric-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(240,205,135,0.06) 0%, rgba(255,255,255,0) 30%);
   }
 
   @media (max-width: 1080px) {
@@ -250,12 +337,14 @@ function SectionEyebrow({ children, color = COLORS.textMuted }) {
 function MetricCard({ label, value, color = COLORS.gold }) {
   return (
     <div
+      className="metric-card"
       style={{
         padding: "14px 14px 12px",
         borderRadius: 18,
         border: `1px solid ${alpha(COLORS.border, 0.95)}`,
-        background: alpha(COLORS.bgCard, 0.88),
-        boxShadow: `inset 0 1px 0 ${alpha(COLORS.text, 0.03)}`,
+        background:
+          `radial-gradient(circle at top, ${alpha(color, 0.1)} 0%, transparent 40%), ${alpha(COLORS.bgCard, 0.94)}`,
+        boxShadow: `inset 0 1px 0 ${alpha(COLORS.text, 0.04)}, 0 12px 26px ${alpha("#000000", 0.2)}`,
       }}
     >
       <div style={{ fontSize: 26, lineHeight: 1, color, marginBottom: 6 }}>{value}</div>
@@ -289,7 +378,7 @@ export default function App() {
   const [sortBy, setSortBy] = useState("year");
   const [searchQuery, setSearchQuery] = useState("");
   const [noteText, setNoteText] = useState("");
-  const [showTimeline, setShowTimeline] = useState(false);
+  const [activeView, setActiveView] = useState(readViewFromHash);
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   useEffect(() => {
@@ -312,6 +401,12 @@ export default function App() {
       // first visit
     }
     setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => setActiveView(readViewFromHash());
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
   const filtered = NOVELS.filter(
@@ -538,10 +633,10 @@ export default function App() {
 
   const panelStyle = {
     background:
-      `linear-gradient(180deg, ${alpha(COLORS.text, 0.018)} 0%, transparent 24%), ${alpha(COLORS.bgModal, 0.96)}`,
+      `radial-gradient(circle at top, ${alpha(COLORS.goldAccent, 0.08)} 0%, transparent 24%), linear-gradient(180deg, ${alpha(COLORS.text, 0.018)} 0%, transparent 24%), ${alpha(COLORS.bgModal, 0.96)}`,
     border: `1px solid ${alpha(COLORS.border, 0.96)}`,
     borderRadius: 26,
-    boxShadow: `0 18px 40px ${alpha("#000000", 0.22)}`,
+    boxShadow: `0 24px 56px ${alpha("#000000", 0.34)}, inset 0 1px 0 ${alpha(COLORS.text, 0.04)}`,
     position: "relative",
     overflow: "hidden",
   };
@@ -564,6 +659,13 @@ export default function App() {
     if (status === "terminado") return COLORS.gold;
     if (status === "en-progreso") return COLORS.inProgress;
     return COLORS.textBook;
+  };
+
+  const switchView = (view) => {
+    setActiveView(view);
+    const nextHash = view === "timeline" ? "#cronologia" : "";
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    window.history.replaceState(null, "", nextUrl);
   };
 
   if (!loaded) {
@@ -589,21 +691,88 @@ export default function App() {
         minHeight: "100vh",
         color: COLORS.text,
         background:
-          `radial-gradient(circle at top, ${alpha(COLORS.goldAccent, 0.06)} 0%, transparent 34%), ${COLORS.bgMain}`,
+          `radial-gradient(circle at top, ${alpha(COLORS.goldAccent, 0.12)} 0%, transparent 30%), radial-gradient(circle at 84% 12%, ${alpha(COLORS.gold, 0.08)} 0%, transparent 24%), linear-gradient(180deg, ${COLORS.bgMain} 0%, #06070a 42%, #08090d 100%)`,
       }}
     >
       <style>{APP_CSS}</style>
 
       <div className="app-shell">
         <div className="app-content">
-          <section style={{ ...panelStyle, padding: "24px clamp(18px, 3vw, 30px) 22px" }}>
+          <section
+            className="surface-panel"
+            style={{
+              ...panelStyle,
+              padding: "14px 16px",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: UI_FONT,
+                fontSize: 11,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: COLORS.textLabel,
+              }}
+            >
+              Dostoievski
+            </div>
+
+            <div
+              role="tablist"
+              aria-label="Secciones principales"
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              {[
+                { key: "library", label: "Biblioteca" },
+                { key: "timeline", label: "Cronología" },
+              ].map(({ key, label }) => {
+                const active = activeView === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => switchView(key)}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: 999,
+                      border: `1px solid ${active ? alpha(COLORS.goldDim, 0.72) : alpha(COLORS.border, 0.92)}`,
+                      background: active ? alpha(COLORS.gold, 0.12) : alpha(COLORS.bgCard, 0.62),
+                      color: active ? COLORS.goldAccent : COLORS.textSecondary,
+                      fontFamily: UI_FONT,
+                      fontSize: 12,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {activeView === "library" && (
+            <>
+              <section className="hero-panel surface-panel" style={{ ...panelStyle, padding: "24px clamp(18px, 3vw, 30px) 22px" }}>
             <div
               style={{
                 position: "absolute",
                 inset: 0,
                 pointerEvents: "none",
                 background:
-                  `radial-gradient(circle at top right, ${alpha(COLORS.goldAccent, 0.1)} 0%, transparent 34%)`,
+                  `radial-gradient(circle at top right, ${alpha(COLORS.goldAccent, 0.16)} 0%, transparent 34%)`,
               }}
             />
 
@@ -613,13 +782,25 @@ export default function App() {
                 <h1
                   style={{
                     fontSize: "clamp(42px, 7vw, 64px)",
-                    lineHeight: 0.95,
+                    lineHeight: 0.92,
                     margin: "10px 0 10px",
                     color: COLORS.goldAccent,
+                    textShadow: `0 10px 30px ${alpha(COLORS.gold, 0.12)}`,
                   }}
                 >
-                  Fiódor
-                  <br />
+                  <span
+                    style={{
+                      display: "block",
+                      fontFamily: UI_FONT,
+                      fontSize: "clamp(16px, 2vw, 22px)",
+                      letterSpacing: "0.24em",
+                      textTransform: "uppercase",
+                      color: COLORS.textSecondary,
+                      marginBottom: 10,
+                    }}
+                  >
+                    Fiódor Mijáilovich
+                  </span>
                   Dostoievski
                 </h1>
                 <div
@@ -639,8 +820,10 @@ export default function App() {
                   justifySelf: "stretch",
                   padding: "18px 18px 16px",
                   borderRadius: 22,
-                  border: `1px solid ${alpha(COLORS.border, 0.88)}`,
-                  background: alpha(COLORS.bgCard, 0.76),
+                  border: `1px solid ${alpha(COLORS.border, 0.9)}`,
+                  background:
+                    `radial-gradient(circle at top right, ${alpha(COLORS.goldAccent, 0.1)} 0%, transparent 34%), ${alpha(COLORS.bgCard, 0.84)}`,
+                  boxShadow: `0 18px 36px ${alpha("#000000", 0.22)}`,
                 }}
               >
                 <SectionEyebrow color={COLORS.textLabel}>Archivo</SectionEyebrow>
@@ -676,7 +859,6 @@ export default function App() {
               style={{
                 marginTop: 12,
                 display: "flex",
-                justifyContent: "space-between",
                 gap: 12,
                 alignItems: "center",
                 flexWrap: "wrap",
@@ -694,16 +876,6 @@ export default function App() {
               >
                 {finishedCount} terminadas, {inProgressCount} activas, {readingPct}% del archivo recorrido.
               </div>
-              <button
-                onClick={() => setShowTimeline((value) => !value)}
-                style={{
-                  ...actionButtonStyle,
-                  color: showTimeline ? COLORS.goldAccent : COLORS.textSecondary,
-                  borderColor: showTimeline ? alpha(COLORS.goldDim, 0.7) : alpha(COLORS.border, 0.92),
-                }}
-              >
-                {showTimeline ? "Ocultar cronología" : "Mostrar cronología"}
-              </button>
             </div>
 
             {inProgressBooks.length > 0 && (
@@ -809,19 +981,7 @@ export default function App() {
             )}
           </section>
 
-          {showTimeline && (
-            <section style={{ ...panelStyle, padding: "16px 16px 18px" }}>
-              <div style={{ padding: "0 8px 10px" }}>
-                <SectionEyebrow>Cronología</SectionEyebrow>
-                <div style={{ fontSize: 15, color: COLORS.textSecondary, marginTop: 6 }}>
-                  Un mismo eje temporal para obras, vida y contexto ruso; el color separa categorías y el estado de lectura queda como señal secundaria en las obras.
-                </div>
-              </div>
-              <Timeline novels={NOVELS} bookStates={bookStates} onSelectBook={openBook} onSelectEvent={openTimelineEvent} />
-            </section>
-          )}
-
-          <section style={{ ...panelStyle, padding: "18px clamp(18px, 2.8vw, 26px)" }}>
+          <section className="surface-panel" style={{ ...panelStyle, padding: "18px clamp(18px, 2.8vw, 26px)" }}>
             <div className="filters-top">
               <div>
                 <SectionEyebrow>Catálogo</SectionEyebrow>
@@ -1175,6 +1335,7 @@ export default function App() {
           )}
 
           <section
+            className="surface-panel"
             style={{
               ...panelStyle,
               padding: "22px clamp(18px, 2.8vw, 30px)",
@@ -1221,10 +1382,21 @@ export default function App() {
               </button>
             </div>
           </section>
+            </>
+          )}
+
+          {activeView === "timeline" && (
+            <VerticalTimelinePage
+              novels={NOVELS}
+              bookStates={bookStates}
+              themes={THEMES}
+              workTypes={WORK_TYPES}
+            />
+          )}
         </div>
       </div>
 
-      {selectedBook && (
+      {selectedBook && activeView !== "timeline" && (
         <BookDetailModal
           key={selectedBook.id}
           book={selectedBook}
@@ -1244,7 +1416,7 @@ export default function App() {
         />
       )}
 
-      {selectedEvent && (
+      {selectedEvent && activeView !== "timeline" && (
         <TimelineEventModal
           event={selectedEvent}
           booksById={BOOKS_BY_ID}

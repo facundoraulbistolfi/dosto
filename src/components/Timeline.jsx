@@ -60,10 +60,6 @@ const WORK_SHORT_LABELS = {
 const WORK_STACK_OFFSETS = [-26, 26, -52, 52, -78, 78, -104, 104];
 const TICK_YEARS = [1821, 1830, 1840, 1850, 1860, 1870, 1880];
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
 function formatYearRange(year, endYear) {
   return endYear ? `${year}–${endYear}` : `${year}`;
 }
@@ -103,7 +99,7 @@ function getWorkVisual(status) {
     return {
       fill: CATEGORY_META.work.color,
       stroke: CATEGORY_META.work.color,
-      halo: alpha(CATEGORY_META.work.color, 0.18),
+      halo: alpha(CATEGORY_META.work.color, 0.28),
       centerDot: null,
       opacity: 1,
       labelColor: COLORS.textBook,
@@ -112,9 +108,9 @@ function getWorkVisual(status) {
 
   if (status === "en-progreso") {
     return {
-      fill: alpha(CATEGORY_META.work.color, 0.16),
+      fill: alpha(CATEGORY_META.work.color, 0.2),
       stroke: CATEGORY_META.work.color,
-      halo: alpha(COLORS.inProgress, 0.18),
+      halo: alpha(COLORS.inProgress, 0.26),
       centerDot: COLORS.inProgress,
       opacity: 1,
       labelColor: COLORS.textSecondary,
@@ -217,54 +213,13 @@ function StatusPreview({ status }) {
   );
 }
 
-function EventTooltip({ x, y, width, title, subtitle, accent }) {
-  const tooltipWidth = 228;
-  const tooltipHeight = 42;
-  const tooltipX = clamp(x - tooltipWidth / 2, 16, width - tooltipWidth - 16);
-  const tooltipY = clamp(y, 12, 348 - tooltipHeight - 12);
-
-  return (
-    <g pointerEvents="none">
-      <rect
-        x={tooltipX}
-        y={tooltipY}
-        width={tooltipWidth}
-        height={tooltipHeight}
-        rx="10"
-        fill={alpha(COLORS.bgMain, 0.96)}
-        stroke={alpha(accent, 0.56)}
-        strokeWidth="0.8"
-      />
-      <text
-        x={tooltipX + 12}
-        y={tooltipY + 16}
-        fill={COLORS.textBook}
-        fontSize="10.5"
-        fontFamily="EB Garamond, serif"
-        fontWeight="600"
-      >
-        {truncate(title, 38)}
-      </text>
-      <text
-        x={tooltipX + 12}
-        y={tooltipY + 30}
-        fill={COLORS.textSecondary}
-        fontSize="8.5"
-        fontFamily={UI_FONT}
-      >
-        {truncate(subtitle, 54)}
-      </text>
-    </g>
-  );
-}
-
 function WorkMarker({ type, x, y, visual, active = false }) {
   const stroke = active ? COLORS.textBook : visual.stroke;
   const strokeWidth = active ? 1.6 : 1.15;
 
   return (
     <g opacity={visual.opacity}>
-      {visual.halo && <circle cx={x} cy={y} r="8.6" fill={visual.halo} />}
+      {visual.halo && <circle cx={x} cy={y} r="10.2" fill={visual.halo} />}
 
       {type === "novela" && (
         <>
@@ -303,13 +258,12 @@ function WorkMarker({ type, x, y, visual, active = false }) {
         <circle cx={x} cy={y} r="5" fill={visual.fill} stroke={stroke} strokeWidth={strokeWidth} />
       )}
 
-      {visual.centerDot && <circle cx={x} cy={y} r="1.7" fill={visual.centerDot} />}
+      {visual.centerDot && <circle cx={x} cy={y} r="2.2" fill={visual.centerDot} />}
     </g>
   );
 }
 
-function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
-  const [hoveredId, setHoveredId] = useState(null);
+function Timeline({ novels, bookStates, selectedId = null, onSelectBook, onSelectEvent }) {
   const [visible, setVisible] = useState({
     work: true,
     life: true,
@@ -373,12 +327,10 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
         handleEventActivate(event);
       }
     },
-    onFocus: () => setHoveredId(event.id),
-    onBlur: () => setHoveredId((current) => (current === event.id ? null : current)),
   });
 
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div style={{ display: "grid", gap: 16 }}>
       <div
         style={{
           display: "flex",
@@ -386,8 +338,8 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
           gap: 14,
           alignItems: "center",
           flexWrap: "wrap",
-        }}
-      >
+          }}
+        >
         <div
           role="toolbar"
           aria-label="Filtrar capas de la cronología"
@@ -441,15 +393,46 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
         </div>
 
         <div style={{ fontSize: 12, color: COLORS.textSecondary, fontFamily: UI_FONT }}>
-          Color por categoría; hacé hover para vista rápida y clic en vida/contexto para abrir el análisis.
+          Estado dentro de obras: dorado lleno = terminado, centro verde = en progreso, contorno = no leído.
         </div>
       </div>
 
       <div
         style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 18,
+          padding: "6px 4px 0",
+        }}
+      >
+        <LegendGroup title="Categoría">
+          <LegendRow icon={<CategoryDot color={CATEGORY_META.work.color} />} label="Obras publicadas" tone={COLORS.textSecondary} />
+          <LegendRow icon={<CategoryDot color={CATEGORY_META.life.color} />} label="Vida de Dostoievski" tone={COLORS.textSecondary} />
+          <LegendRow icon={<CategoryDot color={CATEGORY_META.context.color} />} label="Rusia y contexto" tone={COLORS.textSecondary} />
+        </LegendGroup>
+
+        <LegendGroup title="Tipo de obra">
+          <LegendRow icon={<TypePreview type="novela" />} label="Novela" />
+          <LegendRow icon={<TypePreview type="novela-corta" />} label="Novela corta" />
+          <LegendRow icon={<TypePreview type="cuento" />} label="Cuento" />
+        </LegendGroup>
+
+        <LegendGroup title="Estado de lectura">
+          <LegendRow icon={<StatusPreview status="terminado" />} label="Terminado: marcador dorado lleno y halo alto" />
+          <LegendRow icon={<StatusPreview status="en-progreso" />} label="En progreso: centro verde y brillo de seguimiento" />
+          <LegendRow icon={<StatusPreview status="no-leido" />} label="No leído: contorno dorado sin relleno" />
+        </LegendGroup>
+      </div>
+
+      <div
+        className="editorial-scroll"
+        style={{
           overflowX: "auto",
-          paddingBottom: 8,
-          borderRadius: 18,
+          padding: "4px 4px 10px",
+          borderRadius: 22,
+          background:
+            `linear-gradient(180deg, ${alpha(COLORS.text, 0.018)} 0%, transparent 16%), ${alpha(COLORS.bgCard, 0.64)}`,
+          border: `1px solid ${alpha(COLORS.border, 0.72)}`,
         }}
       >
         <svg
@@ -532,15 +515,13 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
               const x1 = yearToX(event.year);
               const x2 = yearToX(event.endYear);
               const y = 48 + event.row * 20;
-              const isHovered = hoveredId === event.id;
+              const isSelected = selectedId === event.id;
               const labelX = (x1 + x2) / 2;
 
               return (
                 <g
                   key={event.id}
                   style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredId(event.id)}
-                  onMouseLeave={() => setHoveredId(null)}
                   {...getEventInteractionProps(event)}
                 >
                   <rect
@@ -550,8 +531,8 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                     height="14"
                     rx="7"
                     fill={alpha(CATEGORY_META.context.color, 0.18)}
-                    stroke={alpha(CATEGORY_META.context.color, isHovered ? 0.72 : 0.42)}
-                    strokeWidth={isHovered ? "1" : "0.8"}
+                    stroke={isSelected ? COLORS.textBook : alpha(CATEGORY_META.context.color, 0.42)}
+                    strokeWidth={isSelected ? "1.2" : "0.8"}
                   />
                   <text
                     x={labelX}
@@ -563,16 +544,6 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                   >
                     {event.shortLabel}
                   </text>
-                  {isHovered && (
-                    <EventTooltip
-                      x={labelX}
-                      y={contextBandY + 4}
-                      width={width}
-                      title={event.label}
-                      subtitle={`${formatYearRange(event.year, event.endYear)} · ${event.detail}`}
-                      accent={CATEGORY_META.context.color}
-                    />
-                  )}
                 </g>
               );
             })}
@@ -582,22 +553,20 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
               const x = yearToX(event.year);
               const row = contextPointRows[event.id] || 0;
               const labelY = 86 - row * 18;
-              const isHovered = hoveredId === event.id;
+              const isSelected = selectedId === event.id;
 
               return (
                 <g
                   key={event.id}
                   style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredId(event.id)}
-                  onMouseLeave={() => setHoveredId(null)}
                   {...getEventInteractionProps(event)}
                 >
                   <line x1={x} y1={contextAnchorY} x2={x} y2={labelY + 6} stroke={alpha(CATEGORY_META.context.color, 0.42)} strokeWidth="0.9" />
                   <polygon
                     points={`${x},${contextAnchorY - 6} ${x + 6},${contextAnchorY} ${x},${contextAnchorY + 6} ${x - 6},${contextAnchorY}`}
                     fill={alpha(CATEGORY_META.context.color, 0.16)}
-                    stroke={isHovered ? COLORS.textBook : CATEGORY_META.context.color}
-                    strokeWidth={isHovered ? "1.5" : "1.05"}
+                    stroke={isSelected ? COLORS.textBook : CATEGORY_META.context.color}
+                    strokeWidth={isSelected ? "1.5" : "1.05"}
                   />
                   <text
                     x={x}
@@ -609,16 +578,6 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                   >
                     {truncate(event.shortLabel, 16)}
                   </text>
-                  {isHovered && (
-                    <EventTooltip
-                      x={x}
-                      y={labelY - 46}
-                      width={width}
-                      title={event.label}
-                      subtitle={`${event.year} · ${event.detail}`}
-                      accent={CATEGORY_META.context.color}
-                    />
-                  )}
                 </g>
               );
             })}
@@ -632,7 +591,7 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
               const y = axisY + offset;
               const status = getWorkStatus(bookStates, novel.id);
               const visual = getWorkVisual(status);
-              const isHovered = hoveredId === novel.id;
+              const isSelected = selectedId === novel.id;
               const shortLabel = WORK_SHORT_LABELS[novel.title] || truncate(novel.title, 14);
               const labelY = offset < 0 ? y - 10 : y + 17;
 
@@ -640,12 +599,10 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                 <g
                   key={novel.id}
                   style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredId(novel.id)}
-                  onMouseLeave={() => setHoveredId(null)}
                   onClick={() => onSelectBook(novel)}
                 >
                   <line x1={x} y1={axisY} x2={x} y2={y} stroke={alpha(CATEGORY_META.work.color, 0.34)} strokeWidth="0.8" />
-                  <WorkMarker type={novel.type} x={x} y={y} visual={visual} active={isHovered} />
+                  <WorkMarker type={novel.type} x={x} y={y} visual={visual} active={isSelected} />
                   <text
                     x={x}
                     y={labelY}
@@ -656,16 +613,6 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                   >
                     {truncate(shortLabel, 16)}
                   </text>
-                  {isHovered && (
-                    <EventTooltip
-                      x={x}
-                      y={offset < 0 ? y - 62 : y + 18}
-                      width={width}
-                      title={novel.title}
-                      subtitle={`${novel.year} · ${TYPE_LABELS[novel.type]} · ${STATUS_LABELS[status]}`}
-                      accent={CATEGORY_META.work.color}
-                    />
-                  )}
                 </g>
               );
             })}
@@ -675,15 +622,13 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
               const x1 = yearToX(event.year);
               const x2 = yearToX(event.endYear);
               const y = 262 + event.row * 20;
-              const isHovered = hoveredId === event.id;
+              const isSelected = selectedId === event.id;
               const labelX = (x1 + x2) / 2;
 
               return (
                 <g
                   key={event.id}
                   style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredId(event.id)}
-                  onMouseLeave={() => setHoveredId(null)}
                   {...getEventInteractionProps(event)}
                 >
                   <rect
@@ -693,8 +638,8 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                     height="14"
                     rx="7"
                     fill={alpha(CATEGORY_META.life.color, 0.18)}
-                    stroke={alpha(CATEGORY_META.life.color, isHovered ? 0.72 : 0.42)}
-                    strokeWidth={isHovered ? "1" : "0.8"}
+                    stroke={isSelected ? COLORS.textBook : alpha(CATEGORY_META.life.color, 0.42)}
+                    strokeWidth={isSelected ? "1.2" : "0.8"}
                   />
                   <text
                     x={labelX}
@@ -706,16 +651,6 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                   >
                     {event.shortLabel}
                   </text>
-                  {isHovered && (
-                    <EventTooltip
-                      x={labelX}
-                      y={y - 52}
-                      width={width}
-                      title={event.label}
-                      subtitle={`${formatYearRange(event.year, event.endYear)} · ${event.detail}`}
-                      accent={CATEGORY_META.life.color}
-                    />
-                  )}
                 </g>
               );
             })}
@@ -725,14 +660,12 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
               const x = yearToX(event.year);
               const row = lifePointRows[event.id] || 0;
               const labelY = 284 + row * 18;
-              const isHovered = hoveredId === event.id;
+              const isSelected = selectedId === event.id;
 
               return (
                 <g
                   key={event.id}
                   style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredId(event.id)}
-                  onMouseLeave={() => setHoveredId(null)}
                   {...getEventInteractionProps(event)}
                 >
                   <line x1={x} y1={lifeAnchorY} x2={x} y2={labelY - 10} stroke={alpha(CATEGORY_META.life.color, 0.42)} strokeWidth="0.9" />
@@ -741,8 +674,8 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                     cy={lifeAnchorY}
                     r="5"
                     fill={alpha(CATEGORY_META.life.color, 0.18)}
-                    stroke={isHovered ? COLORS.textBook : CATEGORY_META.life.color}
-                    strokeWidth={isHovered ? "1.5" : "1.05"}
+                    stroke={isSelected ? COLORS.textBook : CATEGORY_META.life.color}
+                    strokeWidth={isSelected ? "1.5" : "1.05"}
                   />
                   <text
                     x={x}
@@ -754,16 +687,6 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
                   >
                     {truncate(event.shortLabel, 16)}
                   </text>
-                  {isHovered && (
-                    <EventTooltip
-                      x={x}
-                      y={labelY - 56}
-                      width={width}
-                      title={event.label}
-                      subtitle={`${event.year} · ${event.detail}`}
-                      accent={CATEGORY_META.life.color}
-                    />
-                  )}
                 </g>
               );
             })}
@@ -792,33 +715,6 @@ function Timeline({ novels, bookStates, onSelectBook, onSelectEvent }) {
             </g>
           )}
         </svg>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 18,
-          padding: "2px 4px 0",
-        }}
-      >
-        <LegendGroup title="Categoría">
-          <LegendRow icon={<CategoryDot color={CATEGORY_META.work.color} />} label="Obras publicadas" tone={COLORS.textSecondary} />
-          <LegendRow icon={<CategoryDot color={CATEGORY_META.life.color} />} label="Vida de Dostoievski" tone={COLORS.textSecondary} />
-          <LegendRow icon={<CategoryDot color={CATEGORY_META.context.color} />} label="Rusia y contexto" tone={COLORS.textSecondary} />
-        </LegendGroup>
-
-        <LegendGroup title="Tipo de obra">
-          <LegendRow icon={<TypePreview type="novela" />} label="Novela" />
-          <LegendRow icon={<TypePreview type="novela-corta" />} label="Novela corta" />
-          <LegendRow icon={<TypePreview type="cuento" />} label="Cuento" />
-        </LegendGroup>
-
-        <LegendGroup title="Estado de lectura">
-          <LegendRow icon={<StatusPreview status="terminado" />} label="Terminado: marcador lleno y luminoso" />
-          <LegendRow icon={<StatusPreview status="en-progreso" />} label="En progreso: dot verde interno" />
-          <LegendRow icon={<StatusPreview status="no-leido" />} label="No leído: marcador en outline" />
-        </LegendGroup>
       </div>
     </div>
   );

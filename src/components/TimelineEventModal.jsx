@@ -1,5 +1,5 @@
 import ModalShell from "./ModalShell.jsx";
-import SectionSources from "./SectionSources.jsx";
+import SourcesDisclosure from "./SourcesDisclosure.jsx";
 import { COLORS, alpha } from "../theme.js";
 
 const UI_FONT = "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif";
@@ -15,6 +15,10 @@ function formatYearRange(year, endYear) {
 
 function TimelineEventModal({ event, booksById, onOpenBook, onClose }) {
   const accent = event.category === "life" ? "#89a5c8" : "#ae707b";
+  const sourceGroups = [
+    { label: "Qué pasó", items: event.sources?.event },
+    { label: "Influencia en la obra", items: event.sources?.influence },
+  ];
 
   return (
     <ModalShell ariaLabel={`Evento: ${event.label}`} width="min(760px, 100%)" onClose={onClose}>
@@ -91,7 +95,6 @@ function TimelineEventModal({ event, booksById, onOpenBook, onClose }) {
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.75, color: COLORS.textDesc, whiteSpace: "pre-wrap" }}>
             {event.fullDescription}
           </p>
-          <SectionSources items={event.sources?.event} />
         </div>
 
         <div
@@ -117,7 +120,6 @@ function TimelineEventModal({ event, booksById, onOpenBook, onClose }) {
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.75, color: COLORS.textDesc, whiteSpace: "pre-wrap" }}>
             {event.influenceOnWork}
           </p>
-          <SectionSources items={event.sources?.influence} />
         </div>
 
         {event.relatedWorks?.length > 0 && (
@@ -166,6 +168,8 @@ function TimelineEventModal({ event, booksById, onOpenBook, onClose }) {
             </div>
           </div>
         )}
+
+        <SourcesDisclosure groups={sourceGroups} />
       </div>
     </ModalShell>
   );

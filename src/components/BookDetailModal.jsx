@@ -1,7 +1,7 @@
 import CoverArt from "./CoverArt.jsx";
 import RelationshipDiagram from "./RelationshipDiagram.jsx";
 import ModalShell from "./ModalShell.jsx";
-import SectionSources from "./SectionSources.jsx";
+import SourcesDisclosure from "./SourcesDisclosure.jsx";
 import { COLORS, alpha } from "../theme.js";
 
 const UI_FONT = "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif";
@@ -39,7 +39,7 @@ function DetailSectionTitle({ children }) {
   );
 }
 
-function TextBlock({ title, body, sources, italic = false }) {
+function TextBlock({ title, body, italic = false }) {
   if (!body) return null;
 
   return (
@@ -65,12 +65,11 @@ function TextBlock({ title, body, sources, italic = false }) {
       >
         {body}
       </p>
-      <SectionSources items={sources} />
     </div>
   );
 }
 
-function QuestionList({ items, sources }) {
+function QuestionList({ items }) {
   if (!items?.length) return null;
 
   return (
@@ -94,12 +93,11 @@ function QuestionList({ items, sources }) {
           </div>
         ))}
       </div>
-      <SectionSources items={sources} />
     </div>
   );
 }
 
-function SpoilerBlock({ body, sources }) {
+function SpoilerBlock({ body }) {
   if (!body) return null;
 
   return (
@@ -132,10 +130,9 @@ function SpoilerBlock({ body, sources }) {
           color: COLORS.textSecondary,
           whiteSpace: "pre-wrap",
         }}
-      >
+        >
         {body}
       </p>
-      <SectionSources items={sources} />
     </details>
   );
 }
@@ -160,6 +157,17 @@ function BookDetailModal({
   const sliderPct = book.chapters > 0 ? (sliderValue / book.chapters) * 100 : 0;
   const activeColor = sliderValue === 0 ? COLORS.textLabel : sliderValue === book.chapters ? COLORS.gold : COLORS.inProgress;
   const statusLabel = sliderValue === 0 ? "No leído" : sliderValue === book.chapters ? "Terminado" : "En progreso";
+  const sourceGroups = [
+    { label: "Resumen", items: book.sources?.summary },
+    { label: "Cómo leerla", items: book.sources?.readingGuide },
+    { label: "Contexto de escritura", items: book.sources?.context },
+    { label: "Por qué importa", items: book.sources?.readingGuide },
+    { label: "Claves de lectura", items: book.sources?.readingGuide },
+    book.characters?.length > 0 || book.relationships?.length > 0
+      ? { label: "Personajes y relaciones", items: book.sources?.characters }
+      : null,
+    { label: "Después de leer", items: book.sources?.afterReading },
+  ].filter(Boolean);
 
   return (
     <ModalShell ariaLabel={`Detalle: ${book.title}`} onClose={onClose}>
@@ -317,6 +325,26 @@ function BookDetailModal({
             >
               {book.chapters} capítulos
             </span>
+            {book.goodreadsUrl && (
+              <a
+                href={book.goodreadsUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  padding: "5px 10px",
+                  borderRadius: 999,
+                  border: `1px solid ${alpha(COLORS.goldDim, 0.7)}`,
+                  background: alpha(COLORS.gold, 0.1),
+                  color: COLORS.goldAccent,
+                  fontFamily: UI_FONT,
+                  fontSize: 11,
+                  textDecoration: "none",
+                }}
+              >
+                Ver en Goodreads
+              </a>
+            )}
           </div>
 
           {book.location && (
@@ -347,12 +375,11 @@ function BookDetailModal({
           <p style={{ fontSize: 16, lineHeight: 1.78, color: COLORS.textDesc, margin: "0 0 8px" }}>
             {book.desc}
           </p>
-          <SectionSources title="Fuentes del resumen" items={book.sources?.summary} />
 
-          <TextBlock title="Cómo leerla" body={book.readingGuide} sources={book.sources?.readingGuide} />
-          <TextBlock title="Contexto de escritura" body={book.writtenContext} sources={book.sources?.context} italic />
-          <TextBlock title="Por qué importa" body={book.whyItMatters} sources={book.sources?.readingGuide} />
-          <QuestionList items={book.keyQuestions} sources={book.sources?.readingGuide} />
+          <TextBlock title="Cómo leerla" body={book.readingGuide} />
+          <TextBlock title="Contexto de escritura" body={book.writtenContext} italic />
+          <TextBlock title="Por qué importa" body={book.whyItMatters} />
+          <QuestionList items={book.keyQuestions} />
 
           {book.characters?.length > 0 && (
             <div style={{ marginBottom: 18 }}>
@@ -365,7 +392,6 @@ function BookDetailModal({
                   </div>
                 ))}
               </div>
-              <SectionSources items={book.sources?.characters} />
             </div>
           )}
 
@@ -382,11 +408,10 @@ function BookDetailModal({
               >
                 <RelationshipDiagram characters={book.characters} relationships={book.relationships} />
               </div>
-              <SectionSources items={book.sources?.characters} />
             </div>
           )}
 
-          <SpoilerBlock body={book.afterReading} sources={book.sources?.afterReading} />
+          <SpoilerBlock body={book.afterReading} />
 
           <div style={{ marginTop: 22 }}>
             <DetailSectionTitle>Notas personales</DetailSectionTitle>
@@ -484,6 +509,8 @@ function BookDetailModal({
               </div>
             )}
           </div>
+
+          <SourcesDisclosure groups={sourceGroups} />
         </div>
       </div>
 

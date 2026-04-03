@@ -25,11 +25,11 @@ function ModalShell({ ariaLabel, width = "min(920px, 100%)", onClose, children }
           maxHeight: "92vh",
           overflowY: "auto",
           background:
-            `linear-gradient(180deg, ${alpha(COLORS.text, 0.02)} 0%, transparent 26%), ${alpha(COLORS.bgModal, 0.98)}`,
+            `radial-gradient(circle at top, ${alpha(COLORS.goldAccent, 0.08)} 0%, transparent 24%), linear-gradient(180deg, ${alpha(COLORS.text, 0.02)} 0%, transparent 26%), ${alpha(COLORS.bgModal, 0.985)}`,
           border: `1px solid ${alpha(COLORS.border, 0.98)}`,
           borderRadius: 28,
           padding: "22px clamp(18px, 3vw, 30px)",
-          boxShadow: `0 28px 80px ${alpha("#000000", 0.42)}`,
+          boxShadow: `0 34px 90px ${alpha("#000000", 0.52)}, inset 0 1px 0 ${alpha(COLORS.text, 0.04)}`,
         }}
         onClick={(event) => event.stopPropagation()}
       >

@@ -71,6 +71,10 @@ function archiveSearch(title) {
   );
 }
 
+function goodreadsSearchUrl(title) {
+  return `https://www.goodreads.com/search?q=${encodeURIComponent(`Fyodor Dostoevsky ${title}`)}`;
+}
+
 function dedupeSources(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -98,6 +102,7 @@ function createBookEditorial({
 
   return {
     ...(writtenContext ? { writtenContext } : {}),
+    goodreadsUrl: goodreadsSearchUrl(title),
     readingGuide,
     whyItMatters,
     keyQuestions,
